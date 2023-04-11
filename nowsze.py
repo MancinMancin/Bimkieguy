@@ -105,5 +105,5 @@ async def on_reaction_add(reaction, user):
             #     bot.dps_reactions = []
             #     bot.keystone_reactor = None
 
-
+# mordo wyrzuc token z kodu bo przypex
 bot.run('MTA5NTA1NTE0MzU1ODQ2MzY2MA.GHkFFW.HWL4clvQlE_k3vflDaury9nKbSVoPpDlvtHRUs')
