@@ -1,2 +1,2 @@
-print("Mancin Pala")
+print("Mancin Dobry kolega")
 
