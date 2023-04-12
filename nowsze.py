@@ -64,4 +64,3 @@ async def on_reaction_add(reaction, user):
             bot.healer_reactions.clear()
             bot.dps_reactions.clear()
 
-bot.run()
