@@ -26,17 +26,19 @@ async def on_message(message):
         await message.add_reaction('<:DPS:1095151144864579725>')
         await message.add_reaction('<:Keystone:1095145259903750265>') 
 
-def select_elements(list_1, list_2, list_3, list_4, reactor):
+def select_elements(list_1, list_2, list_3, list_4):
     unique_1, unique_2, unique_3, unique_4 = None, None, None, None
-    if len(list_4) >= 1 and reactor in list_1 or reactor in list_2 or reactor in list_3:
+    if len(list_4) >= 1 and any(element in list_4 for element in list_1 + list_2 + list_3):
         unique_4 = random.choice(list(set(list_4)))
+        while unique_4 not in list_1 + list_2 + list_3:
+            unique_4 = random.choice(list(set(list_4)))
         lists_with_unique_4 = []
         if unique_4 in list_1:
             lists_with_unique_4.append('list_1')
         if unique_4 in list_2:
             lists_with_unique_4.append('list_2')
         if unique_4 in list_3:
-            lists_with_unique_4.append('list_4')
+            lists_with_unique_4.append('list_3')
 
         selected_list = random.choice(lists_with_unique_4)
         if selected_list == 'list_1':
@@ -47,7 +49,7 @@ def select_elements(list_1, list_2, list_3, list_4, reactor):
         if selected_list == 'list_2':
             unique_2 = unique_4
             list_2.remove(unique_4)
-            list_1 = [el for el in list_2 if el != unique_2]
+            list_1 = [el for el in list_1 if el != unique_2]
             list_3 = [el for el in list_3 if el != unique_2]
         if selected_list == 'list_3':
             unique_3 = [unique_4]
@@ -87,7 +89,7 @@ async def on_reaction_add(reaction, user):
         elif str(reaction.emoji) == '<:Keystone:1095145259903750265>':
             bot.keystone_reactions.append(user)
         try:
-            start_tank, start_healer, start_dps, start_keystone = (select_elements(bot.tank_reactions, bot.healer_reactions, bot.dps_reactions, bot.keystone_reactions))
+            (select_elements(bot.tank_reactions, bot.healer_reactions, bot.dps_reactions, bot.keystone_reactions))
         except TypeError:
             return
 
