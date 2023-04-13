@@ -3,16 +3,13 @@ from discord.ext import commands
 import random
 import time
 
-with open("tokenisko.py", "r") as f:
-    TOKEN = f.read().strip()
-
+from config import TOKEN
 
 bot = commands.Bot(command_prefix='!', intents=discord.Intents.all())
 
 bot.tank_reactions = []
 bot.healer_reactions = []
 bot.dps_reactions = []
-bot.keystone_reactor = None
 
 @bot.event
 async def on_ready():
@@ -28,6 +25,21 @@ async def on_message(message):
         await message.add_reaction('<:DPS:1095151144864579725>')
         await message.add_reaction('<:Keystone:1095145259903750265>') 
 
+def select_elements(list_1, list_2, list_3):
+    unique_1, unique_2, unique_3 = None, None, None
+    if len(list_1) >= 1:
+        unique_1 = random.choice(list(set(list_1)))
+        list_2 = [el for el in list_2 if el != unique_1]
+        list_3 = [el for el in list_3 if el != unique_1]
+    if len(list_2) >= 1:
+        unique_2 = random.choice(list(set(list_2)))
+        list_3 = [el for el in list_3 if el != unique_2]
+    if len(list_3) >= 2:
+        unique_3 = random.sample(list(set(list_3)), 2)
+    if not unique_1 or not unique_2 or not unique_3:
+        return
+    return unique_1, unique_2, unique_3
+
 @bot.event
 async def on_reaction_add(reaction, user):
     if user.bot:
@@ -35,33 +47,32 @@ async def on_reaction_add(reaction, user):
     
     message = reaction.message
     if '<@&724869170734432258>' in message.content:
-        print(user.name)
         if str(reaction.emoji) == '<:Tank:1095150384164634624>':
-            print(f"{bot.tank_reactions}")
             bot.tank_reactions.append(user)
-            print(f"Added {user.name} {len(bot.tank_reactions)}to tank reactions list")
-            print(f"tankowie", bot.tank_reactions)
         elif str(reaction.emoji) == '<:Healer:1095151227379130418>':
             bot.healer_reactions.append(user)
-            print(f"Added {user.name} {len(bot.healer_reactions)} to healer reactions list")
         elif str(reaction.emoji) == '<:DPS:1095151144864579725>':
             bot.dps_reactions.append(user)
-            print(f"Added {user.name} {len(bot.dps_reactions)}to DPS reactions list")
+        print(bot.tank_reactions[0].id)
+        try:
+            start_tank, start_healer, start_dps = (select_elements(bot.tank_reactions, bot.healer_reactions, bot.dps_reactions))
+        except TypeError:
+            return
 
-        if len(bot.tank_reactions) >= 1 and len(bot.healer_reactions) >= 1 and len(bot.dps_reactions) >= 2:
+        await message.channel.send(f"Group can now be made")
+        time.sleep(3)
+        try:
+            tank_users, healer_users, dps_users = (select_elements(bot.tank_reactions, bot.healer_reactions, bot.dps_reactions))
+        except TypeError:
+            await message.channel.send(f"Cannot form a team due to people unsigning.")
+            return
         
-            tank_users = [random.choice([user for user in bot.tank_reactions])] 
-            healer_users = ([random.choice([user for user in bot.healer_reactions if user not in tank_users])])  # select one healer user
-            dps_users = ([random.choice([user for user in bot.dps_reactions if user not in tank_users and user not in healer_users])])  # select two dps users
-            dps_users2 = ([random.choice([user for user in bot.dps_reactions if user not in tank_users and user not in healer_users and user not in dps_users])])
-            print(f"dupa123")
+        await message.channel.send(f"Keystone team:\n<:Tank:1095150384164634624> {tank_users.mention}\n<:Healer:1095151227379130418> {healer_users.mention}\n<:DPS:1095151144864579725> {dps_users[0].mention}\n<:DPS:1095151144864579725> {dps_users[1].mention}\n```{tank_users.mention}\n{healer_users.mention}\n{dps_users[0].mention}\n{dps_users[1].mention}```")
 
-            await message.channel.send(f"Keystone team: \n<:Tank:1095150384164634624> {''.join([user.mention for user in tank_users])} \n<:Healer:1095151227379130418> {''.join([user.mention for user in healer_users])} \n<:DPS:1095151144864579725> {''.join([user.mention for user in dps_users])} \n<:DPS:1095151144864579725> {''.join([user.mention for user in dps_users2])}")
-        # else:
-        #     await message.channel.send("Not enough players to form a team yet.")
-            
-            bot.tank_reactions.clear()
-            bot.healer_reactions.clear()
-            bot.dps_reactions.clear()
+        
+bot.tank_reactions.clear()
+bot.healer_reactions.clear()
+bot.dps_reactions.clear()
 
-bot.run()
+
+bot.run(TOKEN)
