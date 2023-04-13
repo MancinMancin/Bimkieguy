@@ -74,6 +74,22 @@ def select_elements(list_1, list_2, list_3, list_4):
         return unique_1, unique_2, unique_3, unique_4
 
 @bot.event
+async def on_reaction_remove(reaction,user):
+    if user.bot:
+        return
+    
+    message = reaction.message
+    if '<@&724869170734432258>' in message.content:
+        if str(reaction.emoji) == '<:Tank:1095150384164634624>':
+            bot.tank_reactions.remove(user)
+        elif str(reaction.emoji) == '<:Healer:1095151227379130418>':
+            bot.healer_reactions.remove(user)
+        elif str(reaction.emoji) == '<:DPS:1095151144864579725>':
+            bot.dps_reactions.remove(user)
+        elif str(reaction.emoji) == '<:Keystone:1095145259903750265>':
+            bot.keystone_reactions.remove(user)
+
+@bot.event
 async def on_reaction_add(reaction, user):
     if user.bot:
         return
