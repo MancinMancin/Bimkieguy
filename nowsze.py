@@ -12,6 +12,7 @@ bot.healer_reactions = []
 bot.dps_reactions = []
 bot.keystone_reactions = []
 message_sent = False
+teammake = False
 
 @bot.event
 async def on_ready():
@@ -27,6 +28,8 @@ async def on_message(message):
         await message.add_reaction('<:DPS:1095151144864579725>')
         await message.add_reaction('<:Keystone:1095145259903750265>')
         global message_sent
+        global teammake
+        teammake = True
         
 
 def select_elements(list_1, list_2, list_3, list_4):
@@ -102,7 +105,7 @@ async def on_reaction_remove(reaction,user):
 async def on_reaction_add(reaction, user):
     if user.bot:
         return
-    
+    global teammake
     message = reaction.message
     if '<@&724869170734432258>' in message.content:
         if str(reaction.emoji) == '<:Tank:1095150384164634624>':
@@ -114,32 +117,33 @@ async def on_reaction_add(reaction, user):
         elif str(reaction.emoji) == '<:Keystone:1095145259903750265>':
             bot.keystone_reactions.append(user)
 
-        
-        if (len(bot.tank_reactions) >= 1 and len(bot.healer_reactions) >= 1 and len(bot.dps_reactions) >=2 and len(set(bot.tank_reactions + bot.healer_reactions + bot.dps_reactions)) >= 4 and len(bot.keystone_reactions) >= 1 and any(element in bot.keystone_reactions for element in bot.tank_reactions + bot.healer_reactions + bot.dps_reactions)):
-            global message_sent
-            if message_sent == False:    
-
-                await message.channel.send(f"Team can now be made")
-                message_sent = True
-
-            time.sleep(5)
-            
+        if teammake == True:
             if (len(bot.tank_reactions) >= 1 and len(bot.healer_reactions) >= 1 and len(bot.dps_reactions) >=2 and len(set(bot.tank_reactions + bot.healer_reactions + bot.dps_reactions)) >= 4 and len(bot.keystone_reactions) >= 1 and any(element in bot.keystone_reactions for element in bot.tank_reactions + bot.healer_reactions + bot.dps_reactions)):
+                global message_sent
+                if message_sent == False:    
 
-                tank_users, healer_users, dps_users, keystone_users = (select_elements(bot.tank_reactions, bot.healer_reactions, bot.dps_reactions, bot.keystone_reactions))
-            
-                await message.channel.send(f"Keystone team:\n<:Tank:1095150384164634624> {tank_users.mention}\n<:Healer:1095151227379130418> {healer_users.mention}\n<:DPS:1095151144864579725> {dps_users[0].mention}\n<:DPS:1095151144864579725> {dps_users[1].mention}\n<:Keystone:1095145259903750265> {keystone_users.mention}\n```{tank_users.mention}\n{healer_users.mention}\n{dps_users[0].mention}\n{dps_users[1].mention}```")
-                
-                bot.tank_reactions.clear()
-                bot.healer_reactions.clear()
-                bot.dps_reactions.clear()
-                bot.keystone_reactions.clear()
-                       
-            else:
-                message_sent = False
-                if message_sent == False:
-                    await message.channel.send(f"Cannot form a team due to people unsigning.")
+                    await message.channel.send(f"Team can now be made")
                     message_sent = True
+
+                time.sleep(5)
+                
+                if (len(bot.tank_reactions) >= 1 and len(bot.healer_reactions) >= 1 and len(bot.dps_reactions) >=2 and len(set(bot.tank_reactions + bot.healer_reactions + bot.dps_reactions)) >= 4 and len(bot.keystone_reactions) >= 1 and any(element in bot.keystone_reactions for element in bot.tank_reactions + bot.healer_reactions + bot.dps_reactions)):
+
+                    tank_users, healer_users, dps_users, keystone_users = (select_elements(bot.tank_reactions, bot.healer_reactions, bot.dps_reactions, bot.keystone_reactions))
+                
+                    await message.channel.send(f"Keystone team:\n<:Tank:1095150384164634624> {tank_users.mention}\n<:Healer:1095151227379130418> {healer_users.mention}\n<:DPS:1095151144864579725> {dps_users[0].mention}\n<:DPS:1095151144864579725> {dps_users[1].mention}\n<:Keystone:1095145259903750265> {keystone_users.mention}\n```{tank_users.mention}\n{healer_users.mention}\n{dps_users[0].mention}\n{dps_users[1].mention}```")
+                    
+                    bot.tank_reactions.clear()
+                    bot.healer_reactions.clear()
+                    bot.dps_reactions.clear()
+                    bot.keystone_reactions.clear()
+                        
+                else:
+                    message_sent = False
+                    if message_sent == False:
+                        await message.channel.send(f"Cannot form a team due to people unsigning.")
+                        message_sent = True
+                        teammake = False
                 
         
 
