@@ -1,18 +1,11 @@
 import discord
 from discord.ext import commands
 import random
-import time
+import asyncio
 
 from config import TOKEN
 
 bot = commands.Bot(command_prefix='!', intents=discord.Intents.all())
-
-bot.tank_reactions = []
-bot.healer_reactions = []
-bot.dps_reactions = []
-bot.keystone_reactions = []
-message_sent = False
-teammake = False
 
 @bot.event
 async def on_ready():
@@ -27,10 +20,7 @@ async def on_message(message):
         await message.add_reaction('<:Healer:1095151227379130418>') 
         await message.add_reaction('<:DPS:1095151144864579725>')
         await message.add_reaction('<:Keystone:1095145259903750265>')
-        global message_sent
-        global teammake
-        teammake = True
-        
+      
 
 def select_elements(list_1, list_2, list_3, list_4):
     while True:
@@ -90,63 +80,87 @@ async def on_reaction_remove(reaction,user):
     if user.bot:
         return
     
+    message_id = reaction.message.id
     message = reaction.message
-    if '<@&724869170734432258>' in message.content:
+    if message.content != '<@&724869170734432258>':
+        return
+    if message_id in message_users:
+
+        role = None
         if str(reaction.emoji) == '<:Tank:1095150384164634624>':
-            bot.tank_reactions.remove(user)
+            role = 'tanks'
         elif str(reaction.emoji) == '<:Healer:1095151227379130418>':
-            bot.healer_reactions.remove(user)
+            role = 'healers'
         elif str(reaction.emoji) == '<:DPS:1095151144864579725>':
-            bot.dps_reactions.remove(user)
+            role = 'dps'
         elif str(reaction.emoji) == '<:Keystone:1095145259903750265>':
-            bot.keystone_reactions.remove(user)
+            role = 'keystone'
+
+        if role:
+            if user in message_users[message_id][role]:
+                message_users[message_id][role].remove(user)
+
+
+message_users = {}
 
 @bot.event
 async def on_reaction_add(reaction, user):
-    if user.bot:
-        return
-    global teammake
+    message_id = reaction.message.id
     message = reaction.message
-    if '<@&724869170734432258>' in message.content:
-        if str(reaction.emoji) == '<:Tank:1095150384164634624>':
-            bot.tank_reactions.append(user)
-        elif str(reaction.emoji) == '<:Healer:1095151227379130418>':
-            bot.healer_reactions.append(user)
-        elif str(reaction.emoji) == '<:DPS:1095151144864579725>':
-            bot.dps_reactions.append(user)
-        elif str(reaction.emoji) == '<:Keystone:1095145259903750265>':
-            bot.keystone_reactions.append(user)
-
-        if teammake == True:
-            if (len(bot.tank_reactions) >= 1 and len(bot.healer_reactions) >= 1 and len(bot.dps_reactions) >=2 and len(set(bot.tank_reactions + bot.healer_reactions + bot.dps_reactions)) >= 4 and len(bot.keystone_reactions) >= 1 and any(element in bot.keystone_reactions for element in bot.tank_reactions + bot.healer_reactions + bot.dps_reactions)):
-                global message_sent
-                if message_sent == False:    
-
-                    await message.channel.send(f"Team can now be made")
-                    message_sent = True
-
-                time.sleep(5)
-                
-                if (len(bot.tank_reactions) >= 1 and len(bot.healer_reactions) >= 1 and len(bot.dps_reactions) >=2 and len(set(bot.tank_reactions + bot.healer_reactions + bot.dps_reactions)) >= 4 and len(bot.keystone_reactions) >= 1 and any(element in bot.keystone_reactions for element in bot.tank_reactions + bot.healer_reactions + bot.dps_reactions)):
-
-                    tank_users, healer_users, dps_users, keystone_users = (select_elements(bot.tank_reactions, bot.healer_reactions, bot.dps_reactions, bot.keystone_reactions))
-                
-                    await message.channel.send(f"Keystone team:\n<:Tank:1095150384164634624> {tank_users.mention}\n<:Healer:1095151227379130418> {healer_users.mention}\n<:DPS:1095151144864579725> {dps_users[0].mention}\n<:DPS:1095151144864579725> {dps_users[1].mention}\n<:Keystone:1095145259903750265> {keystone_users.mention}\n```{tank_users.mention}\n{healer_users.mention}\n{dps_users[0].mention}\n{dps_users[1].mention}```")
+    if user.bot:
+        if message_id not in message_users:
+                message_users[message_id] = {
+                'lock': asyncio.Lock(),
+                'tanks': [],
+                'healers': [],
+                'dps': [],
+                'keystone': [],
+                'sent': False
+                }
                     
-                    bot.tank_reactions.clear()
-                    bot.healer_reactions.clear()
-                    bot.dps_reactions.clear()
-                    bot.keystone_reactions.clear()
+        return
+    
+    if message.content != '<@&724869170734432258>':
+        return
+    if message_id in message_users:
+    
+        role = None
+        if str(reaction.emoji) == '<:Tank:1095150384164634624>':
+            role = 'tanks'
+        elif str(reaction.emoji) == '<:Healer:1095151227379130418>':
+            role = 'healers'
+        elif str(reaction.emoji) == '<:DPS:1095151144864579725>':
+            role = 'dps'
+        elif str(reaction.emoji) == '<:Keystone:1095145259903750265>':
+            role = 'keystone'
+        
+        if role:
+            if user not in message_users[message_id][role]:
+                message_users[message_id][role].append(user)
+        
+        async with message_users[message_id]['lock']:
+            if len(message_users[message_id]['tanks']) >= 1 and len(message_users[message_id]['healers']) >= 1 and len(message_users[message_id]['dps']) >=2 and len(set(message_users[message_id]['tanks'] + message_users[message_id]['healers'] + message_users[message_id]['dps'])) >= 4 and len(message_users[message_id]['keystone']) >= 1 and any(element in message_users[message_id]['keystone'] for element in message_users[message_id]['tanks'] + message_users[message_id]['healers'] + message_users[message_id]['dps']):
+                if message_users[message_id]['sent'] == False:
+                    await message.channel.send(f"Team can now be made")
+                    message_users[message_id]['sent'] = True
+                
+                await asyncio.sleep(5)
+
+                if len(message_users[message_id]['tanks']) >= 1 and len(message_users[message_id]['healers']) >= 1 and len(message_users[message_id]['dps']) >=2 and len(set(message_users[message_id]['tanks'] + message_users[message_id]['healers'] + message_users[message_id]['dps'])) >= 4 and len(message_users[message_id]['keystone']) >= 1 and any(element in message_users[message_id]['keystone'] for element in message_users[message_id]['tanks'] + message_users[message_id]['healers'] + message_users[message_id]['dps']):
+
+                    tank_users, healer_users, dps_users, keystone_users = (select_elements(message_users[message_id]['tanks'], message_users[message_id]['healers'], message_users[message_id]['dps'], message_users[message_id]['keystone']))
+                        
+                    await message.channel.send(f"Keystone team:\n<:Tank:1095150384164634624> {tank_users.mention}\n<:Healer:1095151227379130418> {healer_users.mention}\n<:DPS:1095151144864579725> {dps_users[0].mention}\n<:DPS:1095151144864579725> {dps_users[1].mention}\n<:Keystone:1095145259903750265> {keystone_users.mention}\n```{tank_users.mention}\n{healer_users.mention}\n{dps_users[0].mention}\n{dps_users[1].mention}```")
+
+                    tank_users = []
+                    healer_users = []
+                    dps_users = []
+                    keystone_users = []
+                    del message_users[message_id]
                         
                 else:
-                    message_sent = False
-                    if message_sent == False:
-                        await message.channel.send(f"Cannot form a team due to people unsigning.")
-                        message_sent = True
-                        teammake = False
+                    await message.channel.send(f"Cannot form a team due to people unsigning.")
+                    message_users[message_id]['sent'] = False
                 
         
-
-
-
 bot.run(TOKEN)
