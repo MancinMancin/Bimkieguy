@@ -1,7 +1,7 @@
+import os
 import discord
 from discord.ext import commands
 import random
-import asyncio
 
 from config import TOKEN
 
@@ -82,85 +82,3 @@ async def on_reaction_remove(reaction,user):
     
     message_id = reaction.message.id
     message = reaction.message
-    if message.content != '<@&724869170734432258>':
-        return
-    if message_id in message_users:
-
-        role = None
-        if str(reaction.emoji) == '<:Tank:1095150384164634624>':
-            role = 'tanks'
-        elif str(reaction.emoji) == '<:Healer:1095151227379130418>':
-            role = 'healers'
-        elif str(reaction.emoji) == '<:DPS:1095151144864579725>':
-            role = 'dps'
-        elif str(reaction.emoji) == '<:Keystone:1095145259903750265>':
-            role = 'keystone'
-
-        if role:
-            if user in message_users[message_id][role]:
-                message_users[message_id][role].remove(user)
-
-
-message_users = {}
-
-@bot.event
-async def on_reaction_add(reaction, user):
-    message_id = reaction.message.id
-    message = reaction.message
-    if user.bot:
-        if message_id not in message_users:
-                message_users[message_id] = {
-                'lock': asyncio.Lock(),
-                'tanks': [],
-                'healers': [],
-                'dps': [],
-                'keystone': [],
-                'sent': False
-                }
-                    
-        return
-    
-    if message.content != '<@&724869170734432258>':
-        return
-    if message_id in message_users:
-    
-        role = None
-        if str(reaction.emoji) == '<:Tank:1095150384164634624>':
-            role = 'tanks'
-        elif str(reaction.emoji) == '<:Healer:1095151227379130418>':
-            role = 'healers'
-        elif str(reaction.emoji) == '<:DPS:1095151144864579725>':
-            role = 'dps'
-        elif str(reaction.emoji) == '<:Keystone:1095145259903750265>':
-            role = 'keystone'
-        
-        if role:
-            if user not in message_users[message_id][role]:
-                message_users[message_id][role].append(user)
-        
-        async with message_users[message_id]['lock']:
-            if len(message_users[message_id]['tanks']) >= 1 and len(message_users[message_id]['healers']) >= 1 and len(message_users[message_id]['dps']) >=2 and len(set(message_users[message_id]['tanks'] + message_users[message_id]['healers'] + message_users[message_id]['dps'])) >= 4 and len(message_users[message_id]['keystone']) >= 1 and any(element in message_users[message_id]['keystone'] for element in message_users[message_id]['tanks'] + message_users[message_id]['healers'] + message_users[message_id]['dps']):
-                if message_users[message_id]['sent'] == False:
-                    await message.channel.send(f"Team can now be made")
-                    message_users[message_id]['sent'] = True
-                
-                await asyncio.sleep(5)
-
-                if len(message_users[message_id]['tanks']) >= 1 and len(message_users[message_id]['healers']) >= 1 and len(message_users[message_id]['dps']) >=2 and len(set(message_users[message_id]['tanks'] + message_users[message_id]['healers'] + message_users[message_id]['dps'])) >= 4 and len(message_users[message_id]['keystone']) >= 1 and any(element in message_users[message_id]['keystone'] for element in message_users[message_id]['tanks'] + message_users[message_id]['healers'] + message_users[message_id]['dps']):
-
-                    tank_users, healer_users, dps_users, keystone_users = (select_elements(message_users[message_id]['tanks'], message_users[message_id]['healers'], message_users[message_id]['dps'], message_users[message_id]['keystone']))
-                        
-                    await message.channel.send(f"Keystone team:\n<:Tank:1095150384164634624> {tank_users.mention}\n<:Healer:1095151227379130418> {healer_users.mention}\n<:DPS:1095151144864579725> {dps_users[0].mention}\n<:DPS:1095151144864579725> {dps_users[1].mention}\n<:Keystone:1095145259903750265> {keystone_users.mention}\n```{tank_users.mention}\n{healer_users.mention}\n{dps_users[0].mention}\n{dps_users[1].mention}```")
-
-                    tank_users = []
-                    healer_users = []
-                    dps_users = []
-                    keystone_users = []
-                    del message_users[message_id]
-                        
-                else:
-                    await message.channel.send(f"Cannot form a team due to people unsigning.")
-                    message_users[message_id]['sent'] = False
-                
-        
-bot.run(TOKEN)
