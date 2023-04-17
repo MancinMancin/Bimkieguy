@@ -2,10 +2,15 @@ import discord
 from discord.ext import commands
 import random
 import asyncio
+import json
+import re
 
 from config import TOKEN
 
-bot = commands.Bot(command_prefix='!', intents=discord.Intents.all())
+bot = commands.Bot(command_prefix='/', intents=discord.Intents.all())
+
+with open('keys.json', 'r') as f:
+    keystones = json.load(f)
 
 @bot.event
 async def on_ready():
@@ -20,6 +25,7 @@ async def on_message(message):
         await message.add_reaction('<:Healer:1095151227379130418>') 
         await message.add_reaction('<:DPS:1095151144864579725>')
         await message.add_reaction('<:Keystone:1095145259903750265>')
+    await bot.process_commands(message)
       
 
 def select_elements(list_1, list_2, list_3, list_4):
@@ -162,5 +168,66 @@ async def on_reaction_add(reaction, user):
                     await message.channel.send(f"Cannot form a team due to people unsigning.")
                     message_users[message_id]['sent'] = False
                 
+
+
+
+
+@bot.event
+async def on_message(message):
+    if message.author.bot:
+        return
+    if message.channel.id == 1097460207312961606:
+        pattern = r'^(\w+) - \[Keystone: (.+) \((\d+)\)\]$'
+        for line in message.content.split('\n'):
+            match = re.match(pattern, line)
+            if match:
+                key_name = match.group(1)
+                dungeon_name = match.group(2)
+                dungeon_level = match.group(3)
+                
+                keystones.setdefault(dungeon_name, {})
+                keystones[dungeon_name][key_name] = dungeon_level
+
+                with open("keys.json", "w") as f:
+                    json.dump(keystones, f)
+    await bot.process_commands(message)
+
+
+@bot.command()
+async def keys(ctx, arg=None):
+    abbreviations = {
+    'cos': 'Court of Stars',
+    'av': 'The Azure Vault',
+    'no': 'Nokhud Offensive',
+    'hov': 'Halls of Valor',
+    'aa': 'Algeth\'ar Academy',
+    'tjs': 'Temple of the Jade Serpent',
+    'sbg': 'Shadowmoon Burial Grounds',
+    'rlp': 'Ruby Life Pools',
+}
+    if arg is None:
+        if len(keystones) > 0:
+            for key, data in keystones.items():
+                for keyholder, level in data.items():
+                    await ctx.send(f'{keyholder} - [Keystone: {key} ({level})]')
+        else:
+            await ctx.send(f'There are no keys yet')
+    elif arg == 'reset':
+        keystones.clear()
+        with open("keys.json", "w") as f:
+            json.dump(keystones, f)
+    elif arg.lower() in abbreviations:
+        found_keys = {}
+        key = abbreviations[arg]
+        found_keys = keystones.get(key, {})
+        if found_keys:
+            for keyholder, level in found_keys.items():
+                await ctx.send(f'{keyholder} - [Keystone: {key} ({level})]')
+        else:
+            await ctx.send(f'There are no keys for {key}')
+    else:
+        abbreviations_text = '\n'.join([f'"{key}" for {value}' for key, value in abbreviations.items()])
+        await ctx.send(f'Invalid dungeon, did you mean:\n{abbreviations_text}')
+                       
         
 bot.run(TOKEN)
