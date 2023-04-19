@@ -20,11 +20,13 @@ async def on_ready():
 async def on_message(message):
     if message.author.bot:
         return
-    if '<@&989535345370628126>' in message.content:
+    if '<@&989535345370628126>' in message.content and message.channel.id == 736245738295656468:
         await message.add_reaction('<:Tank:1095150384164634624>') 
         await message.add_reaction('<:Healer:1095151227379130418>') 
         await message.add_reaction('<:DPS:1095151144864579725>')
         await message.add_reaction('<:Keystone:1095145259903750265>')
+
+    await on_keystone_message(message)
     await bot.process_commands(message)
       
 
@@ -208,12 +210,13 @@ async def on_keystone_message(message):
             key_name = match.group(1)
             if key_name in keystones[dungeon_name]:
                 await message.delete()
-            
-    await bot.process_commands(message)
 
 
 @bot.command()
 async def keys(ctx, *, arg=None):
+
+    if ctx.channel.id != 1077890228854988860:
+        return
     abbreviations = {
     'cos': 'Court of Stars',
     'av': 'The Azure Vault',
@@ -240,7 +243,7 @@ async def keys(ctx, *, arg=None):
         keystones.clear()
         with open("keys.json", "w") as f:
             json.dump(keystones, f)
-        await bot.get_channel(1077890228854988860).send("Keys list reset")
+        await ctx.send("Key list reset")
     elif arg.lower() in map(str.lower, abbreviations.keys()) or arg.lower() in map(str.lower, abbreviations.values()):
         found_keys = {}
         key = abbreviations.get(arg.lower()) or [v for _, v in abbreviations.items() if v.lower() == arg.lower()][0]
