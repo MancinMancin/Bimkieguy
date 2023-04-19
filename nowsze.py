@@ -88,7 +88,7 @@ async def on_reaction_remove(reaction,user):
     
     message_id = reaction.message.id
     message = reaction.message
-    if message.content != '<@&724869170734432258>':
+    if message.content != '<@&989535345370628126>':
         return
     if message_id in message_users:
 
@@ -126,7 +126,7 @@ async def on_reaction_add(reaction, user):
                     
         return
     
-    if message.content != '<@&724869170734432258>':
+    if message.content != '<@&989535345370628126>':
         return
     if message_id in message_users:
     
@@ -173,10 +173,11 @@ async def on_reaction_add(reaction, user):
 
 
 @bot.event
-async def on_message(message):
+async def on_keystone_message(message):
+    unrecognized_dungeons = False
     if message.author.bot:
         return
-    if message.channel.id == 1097460207312961606:
+    if message.channel.id == 1077890228854988860:
         pattern = r'^(\w+) - \[Keystone: (.+) \((\d+)\)\]$'
         for line in message.content.split('\n'):
             match = re.match(pattern, line)
@@ -184,50 +185,87 @@ async def on_message(message):
                 key_name = match.group(1)
                 dungeon_name = match.group(2)
                 dungeon_level = match.group(3)
+
+                if dungeon_name not in ['Court of Stars', 'The Azure Vault', 'The Nokhud Offensive', 'Halls of Valor', 'Algeth\'ar Academy', 'Temple of the Jade Serpent', 'Shadowmoon Burial Grounds', 'Ruby Life Pools']:
+                    unrecognized_dungeons = True
+                    continue
+                for dungeon, data in keystones.items():
+                    if key_name in data and dungeon != dungeon_name:
+                        data.pop(key_name)
                 
                 keystones.setdefault(dungeon_name, {})
                 keystones[dungeon_name][key_name] = dungeon_level
 
                 with open("keys.json", "w") as f:
                     json.dump(keystones, f)
+                
+                for line in message.content.split('\n'):
+                    match = re.match(pattern, line)
+        if match:
+            if unrecognized_dungeons == True:
+                await message.channel.send(f'Dungeons provided not recognized')
+                return
+            key_name = match.group(1)
+            if key_name in keystones[dungeon_name]:
+                await message.delete()
+            
     await bot.process_commands(message)
 
 
 @bot.command()
-async def keys(ctx, arg=None):
+async def keys(ctx, *, arg=None):
     abbreviations = {
     'cos': 'Court of Stars',
     'av': 'The Azure Vault',
-    'no': 'Nokhud Offensive',
+    'no': 'The Nokhud Offensive',
     'hov': 'Halls of Valor',
     'aa': 'Algeth\'ar Academy',
     'tjs': 'Temple of the Jade Serpent',
     'sbg': 'Shadowmoon Burial Grounds',
     'rlp': 'Ruby Life Pools',
 }
+    matching_keys = []
+    message_to_send = []
     if arg is None:
         if len(keystones) > 0:
             for key, data in keystones.items():
                 for keyholder, level in data.items():
-                    await ctx.send(f'{keyholder} - [Keystone: {key} ({level})]')
+                    matching_keys.append(f'{keyholder} - [Keystone: {key} ({level})]')
+            if matching_keys:
+                message_to_send = '\n'.join(matching_keys)
+                await ctx.send(message_to_send)
         else:
             await ctx.send(f'There are no keys yet')
-    elif arg == 'reset':
+    elif arg.lower() == 'reset':
         keystones.clear()
         with open("keys.json", "w") as f:
             json.dump(keystones, f)
-    elif arg.lower() in abbreviations:
+        await bot.get_channel(1077890228854988860).send("Keys list reset")
+    elif arg.lower() in map(str.lower, abbreviations.keys()) or arg.lower() in map(str.lower, abbreviations.values()):
         found_keys = {}
-        key = abbreviations[arg]
+        key = abbreviations.get(arg.lower()) or [v for _, v in abbreviations.items() if v.lower() == arg.lower()][0]
         found_keys = keystones.get(key, {})
         if found_keys:
             for keyholder, level in found_keys.items():
-                await ctx.send(f'{keyholder} - [Keystone: {key} ({level})]')
+                matching_keys.append(f'{keyholder} - [Keystone: {key} ({level})]')
+            if matching_keys:
+                message_to_send = '\n'.join(matching_keys)
+                await ctx.send(message_to_send)
         else:
             await ctx.send(f'There are no keys for {key}')
-    else:
+    elif any(arg.lower() in str(val).lower() for _, val in keystones.items()):
+        for key, data in keystones.items():
+            for keyholder, level in data.items():
+                if keyholder.lower() == arg.lower():
+                    matching_keys.append(f'{keyholder} - [Keystone: {key} ({level})]')
+        if matching_keys:
+            message_to_send = '\n'.join(matching_keys)
+            await ctx.send(message_to_send)
+    elif arg.lower() == 'abbr':
         abbreviations_text = '\n'.join([f'"{key}" for {value}' for key, value in abbreviations.items()])
-        await ctx.send(f'Invalid dungeon, did you mean:\n{abbreviations_text}')
+        await ctx.send(f'{abbreviations_text}')
+    else:
+        await ctx.send(f'Keyholder is absent in the list, or dungeon provided is invalid, check "/keys abbr"')
                        
         
 bot.run(TOKEN)
