@@ -20,7 +20,7 @@ async def on_ready():
 async def on_message(message):
     if message.author.bot:
         return
-    if '<@&724869170734432258>' in message.content:
+    if '<@&989535345370628126>' in message.content:
         await message.add_reaction('<:Tank:1095150384164634624>') 
         await message.add_reaction('<:Healer:1095151227379130418>') 
         await message.add_reaction('<:DPS:1095151144864579725>')
