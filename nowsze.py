@@ -25,7 +25,8 @@ async def on_message(message):
         await message.add_reaction('<:Healer:1095151227379130418>') 
         await message.add_reaction('<:DPS:1095151144864579725>')
         await message.add_reaction('<:Keystone:1095145259903750265>')
-
+        await message.add_reaction('<:Muslim_Uncle_Pepe:1098289343627526266>')
+    await kielce(message)
     await on_keystone_message(message)
     await bot.process_commands(message)
       
@@ -141,20 +142,24 @@ async def on_reaction_add(reaction, user):
             role = 'dps'
         elif str(reaction.emoji) == '<:Keystone:1095145259903750265>':
             role = 'keystone'
+        elif str(reaction.emoji) == '<:Muslim_Uncle_Pepe:1098289343627526266>':
+            await message.channel.send(f'Kazzakstan took the boost {message.jump_url}')
+            del message_users[message_id]
+            return
         
         if role:
             if user not in message_users[message_id][role]:
                 message_users[message_id][role].append(user)
         
         async with message_users[message_id]['lock']:
-            if len(message_users[message_id]['tanks']) >= 1 and len(message_users[message_id]['healers']) >= 1 and len(message_users[message_id]['dps']) >=2 and len(set(message_users[message_id]['tanks'] + message_users[message_id]['healers'] + message_users[message_id]['dps'])) >= 4 and len(message_users[message_id]['keystone']) >= 1 and any(element in message_users[message_id]['keystone'] for element in message_users[message_id]['tanks'] + message_users[message_id]['healers'] + message_users[message_id]['dps']):
+            if len(message_users[message_id]['tanks']) >= 1 and len(message_users[message_id]['healers']) >= 1 and len(message_users[message_id]['dps']) >=2 and len(set(message_users[message_id]['tanks'] + message_users[message_id]['healers'])) >=2 and len(set(message_users[message_id]['tanks'] + message_users[message_id]['healers'] + message_users[message_id]['dps'])) >= 4 and len(message_users[message_id]['keystone']) >= 1 and any(element in message_users[message_id]['keystone'] for element in message_users[message_id]['tanks'] + message_users[message_id]['healers'] + message_users[message_id]['dps']):
                 if message_users[message_id]['sent'] == False:
                     await message.channel.send(f"Team can now be made")
                     message_users[message_id]['sent'] = True
                 
                 await asyncio.sleep(5)
 
-                if len(message_users[message_id]['tanks']) >= 1 and len(message_users[message_id]['healers']) >= 1 and len(message_users[message_id]['dps']) >=2 and len(set(message_users[message_id]['tanks'] + message_users[message_id]['healers'] + message_users[message_id]['dps'])) >= 4 and len(message_users[message_id]['keystone']) >= 1 and any(element in message_users[message_id]['keystone'] for element in message_users[message_id]['tanks'] + message_users[message_id]['healers'] + message_users[message_id]['dps']):
+                if len(message_users[message_id]['tanks']) >= 1 and len(message_users[message_id]['healers']) >= 1 and len(message_users[message_id]['dps']) >=2 and len(set(message_users[message_id]['tanks'] + message_users[message_id]['healers'])) >=2 and len(set(message_users[message_id]['tanks'] + message_users[message_id]['healers'] + message_users[message_id]['dps'])) >= 4 and len(message_users[message_id]['keystone']) >= 1 and any(element in message_users[message_id]['keystone'] for element in message_users[message_id]['tanks'] + message_users[message_id]['healers'] + message_users[message_id]['dps']):
 
                     tank_users, healer_users, dps_users, keystone_users = (select_elements(message_users[message_id]['tanks'], message_users[message_id]['healers'], message_users[message_id]['dps'], message_users[message_id]['keystone']))
                         
@@ -171,7 +176,12 @@ async def on_reaction_add(reaction, user):
                     message_users[message_id]['sent'] = False
                 
 
-
+@bot.event
+async def kielce(message):
+    if "kielce" in message.content.lower():
+        await message.channel.send(f'Czy to jest boss?')
+    if "jestem" in message.content.lower():
+        await message.channel.send(f'Jest Dawer?')
 
 
 @bot.event
