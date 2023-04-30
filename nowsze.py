@@ -188,6 +188,7 @@ async def kielce(message):
 @bot.event
 async def on_keystone_message(message):
     unrecognized_dungeons = False
+    keys_to_remove = []
     if message.author.bot:
         return
     if message.channel.id == 1077890228854988860:
@@ -198,7 +199,6 @@ async def on_keystone_message(message):
                 key_name = match.group(1)
                 dungeon_name = match.group(2)
                 dungeon_level = match.group(3)
-                userid = str(message.author.id)
 
                 if dungeon_name not in ['Court of Stars', 'The Azure Vault', 'The Nokhud Offensive', 'Halls of Valor', 'Algeth\'ar Academy', 'Temple of the Jade Serpent', 'Shadowmoon Burial Grounds', 'Ruby Life Pools']:
                     unrecognized_dungeons = True
@@ -206,9 +206,11 @@ async def on_keystone_message(message):
                 for dungeon, data in keystones.items():
                     if key_name in data and dungeon != dungeon_name:
                         data.pop(key_name)
-                
+
+                author_id = str(message.author.id)
                 keystones.setdefault(dungeon_name, {})
-                keystones[dungeon_name][key_name] = dungeon_level
+                keystones[dungeon_name].setdefault(key_name, {})
+                keystones[dungeon_name][key_name][dungeon_level] = author_id
 
                 with open("keys.json", "w") as f:
                     json.dump(keystones, f)
@@ -244,7 +246,7 @@ async def keys(ctx, *, arg=None):
         if len(keystones) > 0:
             for key, data in keystones.items():
                 for keyholder, level in data.items():
-                    matching_keys.append(f'{keyholder} - [Keystone: {key} ({level})]')
+                    matching_keys.append(f'{keyholder} - [Keystone: {key} ({", ".join(list(level.keys()))})]')
             if matching_keys:
                 message_to_send = '\n'.join(matching_keys)
                 await ctx.send(message_to_send)
@@ -261,7 +263,7 @@ async def keys(ctx, *, arg=None):
         found_keys = keystones.get(key, {})
         if found_keys:
             for keyholder, level in found_keys.items():
-                matching_keys.append(f'{keyholder} - [Keystone: {key} ({level})]')
+                matching_keys.append(f'{keyholder} - [Keystone: {key} ({", ".join(list(level.keys()))})]')
             if matching_keys:
                 message_to_send = '\n'.join(matching_keys)
                 await ctx.send(message_to_send)
@@ -271,13 +273,25 @@ async def keys(ctx, *, arg=None):
         for key, data in keystones.items():
             for keyholder, level in data.items():
                 if keyholder.lower() == arg.lower():
-                    matching_keys.append(f'{keyholder} - [Keystone: {key} ({level})]')
+                    matching_keys.append(f'{keyholder} - [Keystone: {key} ({", ".join(list(level.keys()))})]')
         if matching_keys:
             message_to_send = '\n'.join(matching_keys)
             await ctx.send(message_to_send)
     elif arg.lower() == 'abbr':
         abbreviations_text = '\n'.join([f'"{key}" for {value}' for key, value in abbreviations.items()])
         await ctx.send(f'{abbreviations_text}')
+    elif arg.startswith('<@') and arg.endswith('>'):
+        member = int(arg[2:-1])
+        for key, data in keystones.items():
+            for keyholder, level in data.items():
+                if member == int(list(level.values())[0]):
+                    matching_keys.append(f'{keyholder} - [Keystone: {key} ({", ".join(list(level.keys()))})]')
+        if matching_keys:
+            message_to_send = '\n'.join(matching_keys)
+            await ctx.send(message_to_send)
+        else:
+            await ctx.send(f"User doesn't have any keys")
+
     else:
         await ctx.send(f'Keyholder is absent in the list, or dungeon provided is invalid, check "/keys abbr"')
 
