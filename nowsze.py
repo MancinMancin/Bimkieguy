@@ -188,7 +188,6 @@ async def kielce(message):
 @bot.event
 async def on_keystone_message(message):
     unrecognized_dungeons = False
-    keys_to_remove = []
     if message.author.bot:
         return
     if message.channel.id == 1077890228854988860:
@@ -291,7 +290,6 @@ async def keys(ctx, *, arg=None):
             await ctx.send(message_to_send)
         else:
             await ctx.send(f"User doesn't have any keys")
-
     else:
         await ctx.send(f'Keyholder is absent in the list, or dungeon provided is invalid, check "/keys abbr"')
 
@@ -332,8 +330,8 @@ async def rio(ctx, arg1=None, arg2=None, arg3=None):
         "29" : "233",
         "30" : "240"
  }
-    if arg3 is None or arg2 is None or arg1 is None or arg3.lower() not in ["tyra", "tyrannical", "t", "forti", "f", "fortified"]:
-        await ctx.send(f"Wrong format, try: \"/rio <character>-<realm> <level> <f or t>\"")
+    if arg2 is None or arg1 is None or (arg3 is not None and arg3.lower() not in ["tyra", "tyrannical", "t", "forti", "f", "fortified"]):
+        await ctx.send(f"Wrong format, try: \"/rio <character>-<realm> <level> <f or t> (optional)\"")
         return
     if arg2 not in base_score:
         await ctx.send(f"Dungeon level inappropriate")
@@ -344,13 +342,17 @@ async def rio(ctx, arg1=None, arg2=None, arg3=None):
         name = arg1
         realm = default_realm
     rio_increase = {}
+    points_at_lvl = []
 
     url = f"https://raider.io/api/v1/characters/profile?region=eu&realm={realm}&name={name}&fields=mythic_plus_best_runs"
     url2 = f"https://raider.io/api/v1/characters/profile?region=eu&realm={realm}&name={name}&fields=mythic_plus_alternate_runs"
+    url3 = f"https://raider.io/api/v1/characters/profile?region=eu&realm={realm}&name={name}&fields=mythic_plus_scores_by_season%3Acurrent"
 
     response = requests.get(url)
     response2 = requests.get(url2)
-    if response.status_code == 200 and response2.status_code == 200:
+    response3 = requests.get(url3)
+    if response.status_code == 200 and response2.status_code == 200 and response3.status_code == 200:
+        overall_score = response3.json()["mythic_plus_scores_by_season"][0]["scores"]["all"]
         dungeon_list_tyra = {}
         dungeon_list_forti = {}
         best_runs = response.json()["mythic_plus_best_runs"]
@@ -387,60 +389,78 @@ async def rio(ctx, arg1=None, arg2=None, arg3=None):
             if dungeon in dungeon_list_tyra:
                 forti_score = dungeon_list_forti[dungeon]
                 tyra_score = dungeon_list_tyra[dungeon]
-                if arg3.lower() == "tyra" or arg3.lower() == "tyrannical" or arg3.lower() == "t":
-                    if points > forti_score:
-                        if forti_score != 0:
-                            forti_best = forti_score * 1.5
-                            forti_alt = forti_score * 0.5
-                        else:
-                            forti_best = 0
-                            forti_alt = 0
-                        if tyra_score != 0:
-                            tyra_alt = tyra_score * 0.5
-                        else:
-                            tyra_alt = 0
-                        points_dung = points * 1.5
-                        score_from_dung = points_dung + forti_alt - forti_best - tyra_alt
-                    if points < forti_score:
-                        if tyra_score != 0:
-                            tyra_alt = tyra_score * 0.5
-                        else:
-                            tyra_alt = 0
-                        points_dung = points * 0.5
-                        score_from_dung = points_dung - tyra_alt
-                    if score_from_dung < 0:
-                        score_from_dung = 0   
-                    rio_increase.update({dungeon: score_from_dung.__round__(1)})
-                elif arg3.lower() == "forti" or arg3.lower() == "fortified" or arg3.lower() == "f":
-                    if points > tyra_score:
-                        if tyra_score != 0:
-                            tyra_best = tyra_score * 1.5
-                            tyra_alt = tyra_score * 0.5
-                        else:
-                            tyra_best = 0
-                            tyra_alt = 0
-                        if forti_score != 0:
-                            forti_alt = float(forti_score) * 0.5
-                        else:
-                            forti_alt = 0
-                        points_dung = points * 1.5
-                        score_from_dung = points_dung + tyra_alt - forti_alt - tyra_best
-                    if points < tyra_score:
-                        if forti_score != 0:
-                            forti_alt = float(forti_score) * 0.5
-                        else:
-                            forti_score = 0
-                        points_dung = points * 0.5
-                        score_from_dung = points_dung - forti_alt
-                    if score_from_dung < 0:
-                        score_from_dung = 0
-                    rio_increase.update({dungeon: score_from_dung.__round__(1)})
-        total_score = sum(rio_increase.values())
-        for key, value in rio_increase.items():
-            message_to_send.append(f"{key} - {value}")
-        message_to_send.append(f"\nTotal: {total_score.__round__(1)}")
-        message_to_send = "\n".join(message_to_send)
-        await ctx.send(message_to_send)
+                if forti_score != 0:
+                    forti_best = (forti_score * 1.5).__round__(1)
+                    forti_alt = (forti_score * 0.5).__round__(1)
+                else:
+                    forti_best = 0
+                    forti_alt = 0
+                if tyra_score != 0:
+                    tyra_best = (tyra_score * 1.5).__round__(1)
+                    tyra_alt = (tyra_score * 0.5).__round__(1)
+                else:
+                    tyra_best = 0
+                    tyra_alt = 0
+                half_points = (points * 0.5).__round__(1)
+                one_half_points = (points * 1.5).__round__(1)
+                two_points = (points * 2).__round__(1)
+                if arg3 is not None:
+                    if arg3.lower() == "tyra" or arg3.lower() == "tyrannical" or arg3.lower() == "t":
+                        if points > forti_score:
+                            if forti_score > tyra_score:
+                                score_from_dung = one_half_points + forti_alt - forti_best - tyra_alt
+                            elif forti_score < tyra_score:
+                                score_from_dung = one_half_points - tyra_best
+                        if points < forti_score:
+                            score_from_dung = half_points - tyra_alt
+                        if score_from_dung < 0:
+                            score_from_dung = 0
+                    elif arg3.lower() == "forti" or arg3.lower() == "fortified" or arg3.lower() == "f":
+                        if points > tyra_score:
+                            if forti_score > tyra_score:
+                                score_from_dung = one_half_points - forti_best
+                            elif forti_score < tyra_score:
+                                score_from_dung = one_half_points + tyra_alt - tyra_best - forti_alt
+                        if points < tyra_score:
+                            score_from_dung = half_points - forti_alt
+                        if score_from_dung < 0:
+                            score_from_dung = 0
+                    round_score = score_from_dung.__round__(1)
+                    rio_increase.update({dungeon: round_score})
+                elif arg3 == None:
+                        if points <= tyra_score and points <= forti_score:
+                            continue
+                        if points > tyra_score and points > forti_score:
+                            if tyra_score == 0 and forti_score != 0:
+                                points_to_add = two_points - forti_best
+                            elif forti_score == 0 and tyra_score != 0:
+                                points_to_add = two_points - tyra_best
+                            else:
+                                if tyra_score > forti_score:
+                                    points_to_add = two_points - tyra_best  - forti_alt
+                                if tyra_score < forti_score:
+                                    points_to_add = two_points - tyra_alt - forti_best
+                        if points > tyra_score and points <= forti_score:
+                            points_to_add = half_points - tyra_alt
+                        if points <= tyra_score and points > forti_score:
+                            points_to_add = half_points - forti_alt
+                        points_rounded = points_to_add.__round__(1)
+                        points_at_lvl.append(points_rounded)
+
+        if points_at_lvl:
+            summed = sum(points_at_lvl)
+            summed_score = summed.__round__(1) + overall_score
+            await ctx.send(f'{summed.__round__(1)} for a total of {summed_score.__round__(1)}')
+        if rio_increase:
+                    total_score = sum(rio_increase.values())
+                    for key, value in rio_increase.items():
+                        message_to_send.append(f"{key} - {value}")
+                    message_to_send.append(f"\nTotal: {total_score.__round__(1)}")
+                    message_to_send = "\n".join(message_to_send)
+                    await ctx.send(message_to_send)
+
+                    
+
 
 
     
