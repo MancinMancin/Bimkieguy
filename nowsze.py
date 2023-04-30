@@ -4,6 +4,7 @@ import random
 import asyncio
 import json
 import re
+import requests
 
 from config import TOKEN
 
@@ -197,6 +198,7 @@ async def on_keystone_message(message):
                 key_name = match.group(1)
                 dungeon_name = match.group(2)
                 dungeon_level = match.group(3)
+                userid = str(message.author.id)
 
                 if dungeon_name not in ['Court of Stars', 'The Azure Vault', 'The Nokhud Offensive', 'Halls of Valor', 'Algeth\'ar Academy', 'Temple of the Jade Serpent', 'Shadowmoon Burial Grounds', 'Ruby Life Pools']:
                     unrecognized_dungeons = True
@@ -224,7 +226,6 @@ async def on_keystone_message(message):
 
 @bot.command()
 async def keys(ctx, *, arg=None):
-
     if ctx.channel.id != 1077890228854988860:
         return
     abbreviations = {
@@ -279,6 +280,160 @@ async def keys(ctx, *, arg=None):
         await ctx.send(f'{abbreviations_text}')
     else:
         await ctx.send(f'Keyholder is absent in the list, or dungeon provided is invalid, check "/keys abbr"')
-                       
+
+
+@bot.command()
+async def rio(ctx, arg1=None, arg2=None, arg3=None):
+    all_dungeons = ["Court of Stars", "Shadowmoon Burial Grounds", "Halls of Valor", "Temple of the Jade Serpent", "Ruby Life Pools", "The Nokhud Offensive", "The Azure Vault", "Algeth'ar Academy"]
+    message_to_send = []
+    default_realm = "burninglegion"
+    base_score = {
+        "2" : "40",
+        "3" : "45",
+        "4" : "55",
+        "5" : "60",
+        "6" : "65",
+        "7" : "75",
+        "8" : "80",
+        "9" : "85",
+        "10" : "100",
+        "11" : "107",
+        "12" : "114",
+        "13" : "121",
+        "14" : "128",
+        "15" : "135",
+        "16" : "142",
+        "17" : "149",
+        "18" : "156",
+        "19" : "163",
+        "20" : "170",
+        "21" : "177",
+        "22" : "184",
+        "23" : "191",
+        "24" : "198",
+        "25" : "205",
+        "26" : "212",
+        "27" : "219",
+        "28" : "226",
+        "29" : "233",
+        "30" : "240"
+ }
+    if arg3 is None or arg2 is None or arg1 is None or arg3.lower() not in ["tyra", "tyrannical", "t", "forti", "f", "fortified"]:
+        await ctx.send(f"Wrong format, try: \"/rio <character>-<realm> <level> <f or t>\"")
+        return
+    if arg2 not in base_score:
+        await ctx.send(f"Dungeon level inappropriate")
+        return
+    if "-" in arg1:
+        name, realm = arg1.split("-")
+    else:
+        name = arg1
+        realm = default_realm
+    rio_increase = {}
+
+    url = f"https://raider.io/api/v1/characters/profile?region=eu&realm={realm}&name={name}&fields=mythic_plus_best_runs"
+    url2 = f"https://raider.io/api/v1/characters/profile?region=eu&realm={realm}&name={name}&fields=mythic_plus_alternate_runs"
+
+    response = requests.get(url)
+    response2 = requests.get(url2)
+    if response.status_code == 200 and response2.status_code == 200:
+        dungeon_list_tyra = {}
+        dungeon_list_forti = {}
+        best_runs = response.json()["mythic_plus_best_runs"]
+        alt_runs = response2.json()["mythic_plus_alternate_runs"]
+        for dungeon in all_dungeons:
+            if not any(item["dungeon"] == dungeon for item in best_runs):
+                my_dict = {"dungeon": dungeon, "score": 0, "affixes": [{"name": "Fortified",}]}
+                best_runs.append(my_dict)
+            if not any(item["dungeon"] == dungeon for item in alt_runs):
+                    if any (item["dungeon"] == dungeon and item["affixes"][0]["name"] == "Fortified" for item in best_runs):
+                        my_dict = {"dungeon": dungeon, "score": 0, "affixes": [{"name": "Tyrannical"}]}
+                    if any (item["dungeon"] == dungeon and item["affixes"][0]["name"] == "Tyrannical" for item in best_runs):
+                        my_dict = {"dungeon": dungeon, "score": 0, "affixes": [{"name": "Fortified"}]}
+                    alt_runs.append(my_dict)
+
+        for run in alt_runs:
+            affix = run["affixes"][0]["name"]
+            dungeon = run["dungeon"]
+            score = run["score"]
+            if affix == "Tyrannical":
+                dungeon_list_tyra.update({dungeon: score})
+            if affix == "Fortified":
+                dungeon_list_forti.update({dungeon: score})
+        for run in best_runs:
+            affix = run["affixes"][0]["name"]
+            dungeon = run["dungeon"]
+            score = run["score"]
+            if affix == "Tyrannical":
+                dungeon_list_tyra.update({dungeon: score})
+            if affix == "Fortified":
+                dungeon_list_forti.update({dungeon: score})
+        points = int(base_score[arg2])
+        for dungeon in dungeon_list_forti:
+            if dungeon in dungeon_list_tyra:
+                forti_score = dungeon_list_forti[dungeon]
+                tyra_score = dungeon_list_tyra[dungeon]
+                if arg3.lower() == "tyra" or arg3.lower() == "tyrannical" or arg3.lower() == "t":
+                    if points > forti_score:
+                        if forti_score != 0:
+                            forti_best = forti_score * 1.5
+                            forti_alt = forti_score * 0.5
+                        else:
+                            forti_best = 0
+                            forti_alt = 0
+                        if tyra_score != 0:
+                            tyra_alt = tyra_score * 0.5
+                        else:
+                            tyra_alt = 0
+                        points_dung = points * 1.5
+                        score_from_dung = points_dung + forti_alt - forti_best - tyra_alt
+                    if points < forti_score:
+                        if tyra_score != 0:
+                            tyra_alt = tyra_score * 0.5
+                        else:
+                            tyra_alt = 0
+                        points_dung = points * 0.5
+                        score_from_dung = points_dung - tyra_alt
+                    if score_from_dung < 0:
+                        score_from_dung = 0   
+                    rio_increase.update({dungeon: score_from_dung.__round__(1)})
+                elif arg3.lower() == "forti" or arg3.lower() == "fortified" or arg3.lower() == "f":
+                    if points > tyra_score:
+                        if tyra_score != 0:
+                            tyra_best = tyra_score * 1.5
+                            tyra_alt = tyra_score * 0.5
+                        else:
+                            tyra_best = 0
+                            tyra_alt = 0
+                        if forti_score != 0:
+                            forti_alt = float(forti_score) * 0.5
+                        else:
+                            forti_alt = 0
+                        points_dung = points * 1.5
+                        score_from_dung = points_dung + tyra_alt - forti_alt - tyra_best
+                    if points < tyra_score:
+                        if forti_score != 0:
+                            forti_alt = float(forti_score) * 0.5
+                        else:
+                            forti_score = 0
+                        points_dung = points * 0.5
+                        score_from_dung = points_dung - forti_alt
+                    if score_from_dung < 0:
+                        score_from_dung = 0
+                    rio_increase.update({dungeon: score_from_dung.__round__(1)})
+        total_score = sum(rio_increase.values())
+        for key, value in rio_increase.items():
+            message_to_send.append(f"{key} - {value}")
+        message_to_send.append(f"\nTotal: {total_score.__round__(1)}")
+        message_to_send = "\n".join(message_to_send)
+        await ctx.send(message_to_send)
+
+
+    
+    else:
+        await ctx.send(f"Error retrieving data: {response.status_code}")
+
+
+                  
         
 bot.run(TOKEN)
