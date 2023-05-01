@@ -411,7 +411,7 @@ async def rio(ctx, arg1=None, arg2=None, arg3=None):
                                 score_from_dung = one_half_points + forti_alt - forti_best - tyra_alt
                             elif forti_score < tyra_score:
                                 score_from_dung = one_half_points - tyra_best
-                        if points < forti_score:
+                        if points <= forti_score:
                             score_from_dung = half_points - tyra_alt
                         if score_from_dung < 0:
                             score_from_dung = 0
@@ -421,7 +421,7 @@ async def rio(ctx, arg1=None, arg2=None, arg3=None):
                                 score_from_dung = one_half_points - forti_best
                             elif forti_score < tyra_score:
                                 score_from_dung = one_half_points + tyra_alt - tyra_best - forti_alt
-                        if points < tyra_score:
+                        if points <= tyra_score:
                             score_from_dung = half_points - forti_alt
                         if score_from_dung < 0:
                             score_from_dung = 0
@@ -435,8 +435,10 @@ async def rio(ctx, arg1=None, arg2=None, arg3=None):
                                 points_to_add = two_points - forti_best
                             elif forti_score == 0 and tyra_score != 0:
                                 points_to_add = two_points - tyra_best
+                            elif forti_score == 0 and tyra_score == 0:
+                                points_to_add = two_points
                             else:
-                                if tyra_score > forti_score:
+                                if tyra_score >= forti_score:
                                     points_to_add = two_points - tyra_best  - forti_alt
                                 if tyra_score < forti_score:
                                     points_to_add = two_points - tyra_alt - forti_best
