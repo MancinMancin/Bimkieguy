@@ -190,45 +190,58 @@ async def on_keystone_message(message):
     unrecognized_dungeons = False
     if message.author.bot:
         return
-    if message.channel.id == 1077890228854988860:
-        pattern = r'^(\w+) - \[Keystone: (.+) \((\d+)\)\]$'
-        for line in message.content.split('\n'):
-            match = re.match(pattern, line)
-            if match:
-                key_name = match.group(1)
-                dungeon_name = match.group(2)
-                dungeon_level = match.group(3)
-
-                if dungeon_name not in ['Court of Stars', 'The Azure Vault', 'The Nokhud Offensive', 'Halls of Valor', 'Algeth\'ar Academy', 'Temple of the Jade Serpent', 'Shadowmoon Burial Grounds', 'Ruby Life Pools']:
-                    unrecognized_dungeons = True
-                    continue
-                for dungeon, data in keystones.items():
-                    if key_name in data and dungeon != dungeon_name:
-                        data.pop(key_name)
-
-                author_id = str(message.author.id)
-                keystones.setdefault(dungeon_name, {})
-                keystones[dungeon_name].setdefault(key_name, {})
-                keystones[dungeon_name][key_name][dungeon_level] = author_id
-
-                with open("keys.json", "w") as f:
-                    json.dump(keystones, f)
-                
-                for line in message.content.split('\n'):
-                    match = re.match(pattern, line)
+    # if message.channel.id == 1077890228854988860:
+    pattern = r'^(\w+) - \[Keystone: (.+) \((\d+)\)\]$'
+    for line in message.content.split('\n'):
+        match = re.match(pattern, line)
         if match:
-            if unrecognized_dungeons == True:
-                await message.channel.send(f'Dungeons provided not recognized')
-                return
             key_name = match.group(1)
-            if key_name in keystones[dungeon_name]:
-                await message.delete()
+            dungeon_name = match.group(2)
+            dungeon_level = match.group(3)
+            server_id = str(message.guild.id)
 
+            if dungeon_name not in ['Court of Stars', 'The Azure Vault', 'The Nokhud Offensive', 'Halls of Valor', 'Algeth\'ar Academy', 'Temple of the Jade Serpent', 'Shadowmoon Burial Grounds', 'Ruby Life Pools']:
+            # if dungeon_name not in ['Brackenhide Hollow', 'Halls of Infusion', 'Uldaman, Legacy of Tyr', "Neltharus", "Freehold", "The Underrot", "Neltharion's Lair", "The Vortex Pinnacle"]:
+                unrecognized_dungeons = True
+                continue
+            for dungeon, data in keystones.items():
+                if key_name in data and dungeon != dungeon_name:
+                    data.pop(key_name)
+
+            # author_id = str(message.author.id)
+            # keystones.setdefault(dungeon_name, {})
+            # keystones[dungeon_name].setdefault(key_name, {})
+            # keystones[dungeon_name][key_name][dungeon_level] = author_id
+            author_id = str(message.author.id)
+            keystones.setdefault(server_id, {})
+            keystones[server_id].setdefault(dungeon_name, {})
+            keystones[server_id][dungeon_name].setdefault(key_name, {})
+            keystones[server_id][dungeon_name][key_name][dungeon_level] = author_id
+
+            with open("keys.json", "w") as f:
+                json.dump(keystones, f)
+            
+            for line in message.content.split('\n'):
+                match = re.match(pattern, line)
+    if match:
+        if unrecognized_dungeons == True:
+            await message.channel.send(f'Dungeons provided not recognized')
+            return
+        key_name = match.group(1)
+        if key_name in keystones[server_id][dungeon_name]:
+            await message.delete()
+
+@bot.event
+async def om_guild_remove(guild):
+    server_id = str(guild.id)
+    if server_id in keystones:
+        del keystones[server_id]
 
 @bot.command()
 async def keys(ctx, *, arg=None):
-    if ctx.channel.id != 1077890228854988860:
-        return
+    server_id = str(ctx.guild.id)
+    # if ctx.channel.id != 1077890228854988860:
+    #     return
     abbreviations = {
     'cos': 'Court of Stars',
     'av': 'The Azure Vault',
@@ -239,10 +252,20 @@ async def keys(ctx, *, arg=None):
     'sbg': 'Shadowmoon Burial Grounds',
     'rlp': 'Ruby Life Pools',
 }
+#     abbreviations = {
+#     'bh': 'Brackenhide Hollow',
+#     'hoi': 'Halls of Infusion',
+#     'ulot': 'Uldaman, Legacy of Tyr',
+#     'nel': 'Neltharus',
+#     'fh': 'Freehold',
+#     'ur': 'The Underrot',
+#     'nl': "Neltharion's Lair",
+#     'tvp': 'The Vortex Pinnacle',
+# }
     matching_keys = []
     message_to_send = []
     if arg is None:
-        if len(keystones) > 0:
+        if len(keystones.get(server_id, {})) > 0:            
             for key, data in keystones.items():
                 for keyholder, level in data.items():
                     matching_keys.append(f'{keyholder} - [Keystone: {key} ({", ".join(list(level.keys()))})]')
@@ -259,7 +282,7 @@ async def keys(ctx, *, arg=None):
     elif arg.lower() in map(str.lower, abbreviations.keys()) or arg.lower() in map(str.lower, abbreviations.values()):
         found_keys = {}
         key = abbreviations.get(arg.lower()) or [v for _, v in abbreviations.items() if v.lower() == arg.lower()][0]
-        found_keys = keystones.get(key, {})
+        found_keys = keystones.get(server_id, {}).get(key, {})
         if found_keys:
             for keyholder, level in found_keys.items():
                 matching_keys.append(f'{keyholder} - [Keystone: {key} ({", ".join(list(level.keys()))})]')
@@ -268,8 +291,8 @@ async def keys(ctx, *, arg=None):
                 await ctx.send(message_to_send)
         else:
             await ctx.send(f'There are no keys for {key}')
-    elif any(arg.lower() in str(val).lower() for _, val in keystones.items()):
-        for key, data in keystones.items():
+    elif any(arg.lower() in str(val).lower() for _, val in keystones[server_id].items()):
+        for key, data in keystones[server_id].items():
             for keyholder, level in data.items():
                 if keyholder.lower() == arg.lower():
                     matching_keys.append(f'{keyholder} - [Keystone: {key} ({", ".join(list(level.keys()))})]')
@@ -281,7 +304,7 @@ async def keys(ctx, *, arg=None):
         await ctx.send(f'{abbreviations_text}')
     elif arg.startswith('<@') and arg.endswith('>'):
         member = int(arg[2:-1])
-        for key, data in keystones.items():
+        for key, data in keystones[server_id].items():
             for keyholder, level in data.items():
                 if member == int(list(level.values())[0]):
                     matching_keys.append(f'{keyholder} - [Keystone: {key} ({", ".join(list(level.keys()))})]')
@@ -297,6 +320,7 @@ async def keys(ctx, *, arg=None):
 @bot.command()
 async def rio(ctx, arg1=None, arg2=None, arg3=None):
     all_dungeons = ["Court of Stars", "Shadowmoon Burial Grounds", "Halls of Valor", "Temple of the Jade Serpent", "Ruby Life Pools", "The Nokhud Offensive", "The Azure Vault", "Algeth'ar Academy"]
+    # all_dungeons = ["The Vortex Pinnacle", "Neltharion's Lair", "The Underrot", "Freehold", "Neltharus", "Uldaman, Legacy of Tyr", "Halls of Infusion", "Brackenhide Hollow"]
     message_to_send = []
     default_realm = "burninglegion"
     base_score = {
