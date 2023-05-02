@@ -179,10 +179,14 @@ async def on_reaction_add(reaction, user):
 
 @bot.event
 async def kielce(message):
+    if message.guild.id != 521281100069470208:
+        return
     if "kielce" in message.content.lower():
         await message.channel.send(f'Czy to jest boss?')
     if "jestem" in message.content.lower():
         await message.channel.send(f'Jest Dawer?')
+    if "zrob" in message.content.lower() or "zrób" in message.content.lower():
+        await message.channel.send(f'Dziunia nie jestes mojim szefem') 
 
 
 @bot.event
@@ -190,7 +194,6 @@ async def on_keystone_message(message):
     unrecognized_dungeons = False
     if message.author.bot:
         return
-    # if message.channel.id == 1077890228854988860:
     pattern = r'^(\w+) - \[Keystone: (.+) \((\d+)\)\]$'
     for line in message.content.split('\n'):
         match = re.match(pattern, line)
@@ -208,10 +211,6 @@ async def on_keystone_message(message):
                 if key_name in data and dungeon != dungeon_name:
                     data.pop(key_name)
 
-            # author_id = str(message.author.id)
-            # keystones.setdefault(dungeon_name, {})
-            # keystones[dungeon_name].setdefault(key_name, {})
-            # keystones[dungeon_name][key_name][dungeon_level] = author_id
             author_id = str(message.author.id)
             keystones.setdefault(server_id, {})
             keystones[server_id].setdefault(dungeon_name, {})
@@ -240,8 +239,6 @@ async def om_guild_remove(guild):
 @bot.command()
 async def keys(ctx, *, arg=None):
     server_id = str(ctx.guild.id)
-    # if ctx.channel.id != 1077890228854988860:
-    #     return
     abbreviations = {
     'cos': 'Court of Stars',
     'av': 'The Azure Vault',
@@ -255,18 +252,18 @@ async def keys(ctx, *, arg=None):
 #     abbreviations = {
 #     'bh': 'Brackenhide Hollow',
 #     'hoi': 'Halls of Infusion',
-#     'ulot': 'Uldaman, Legacy of Tyr',
-#     'nel': 'Neltharus',
+#     'uld': 'Uldaman, Legacy of Tyr',
+#     'nelt': 'Neltharus',
 #     'fh': 'Freehold',
 #     'ur': 'The Underrot',
 #     'nl': "Neltharion's Lair",
-#     'tvp': 'The Vortex Pinnacle',
+#     'vp': 'The Vortex Pinnacle',
 # }
     matching_keys = []
     message_to_send = []
     if arg is None:
         if len(keystones.get(server_id, {})) > 0:            
-            for key, data in keystones.items():
+            for key, data in keystones[server_id].items():
                 for keyholder, level in data.items():
                     matching_keys.append(f'{keyholder} - [Keystone: {key} ({", ".join(list(level.keys()))})]')
             if matching_keys:
@@ -484,16 +481,7 @@ async def rio(ctx, arg1=None, arg2=None, arg3=None):
                     message_to_send.append(f"\nTotal: {total_score.__round__(1)}")
                     message_to_send = "\n".join(message_to_send)
                     await ctx.send(message_to_send)
-
-                    
-
-
-
-    
     else:
-        await ctx.send(f"Error retrieving data: {response.status_code}")
-
-
-                  
+        await ctx.send(f"Error retrieving data: {response.status_code}")               
         
 bot.run(TOKEN)
