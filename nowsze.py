@@ -5,6 +5,8 @@ import asyncio
 import json
 import re
 import requests
+import time
+import schedule
 
 from config import TOKEN
 
@@ -13,9 +15,32 @@ bot = commands.Bot(command_prefix='/', intents=discord.Intents.all())
 with open('keys.json', 'r') as f:
     keystones = json.load(f)
 
+# async def reset_keystones():
+#     keystones.clear()
+#     with open('keys.json', 'w') as f:
+#         json.dump(keystones, f)
+
+# async def scheduler():
+#     schedule.every().wednesday.at("06:00").do(reset_keystones)
+#     while True:
+#         schedule.run_pending()
+#         time.sleep(60)
+
+cache = {}
+
+async def reset_cache():
+    while True:
+        await asyncio.sleep(600)
+        cache.clear()
+
+async def start_cache_reset():
+    await reset_cache()
+
 @bot.event
 async def on_ready():
     print(f'Logged in as {bot.user}')
+    bot.loop.create_task(start_cache_reset())
+    # bot.loop.create_task(scheduler())
 
 @bot.event
 async def on_message(message):
@@ -84,6 +109,10 @@ def select_elements(list_1, list_2, list_3, list_4):
         if not unique_1 or not unique_2 or not unique_3:
             continue
         return unique_1, unique_2, unique_3, unique_4
+    
+async def boost_expired(boost_msg_id):
+    await asyncio.sleep(6 * 60 * 60)
+    del message_users[boost_msg_id]
 
 @bot.event
 async def on_reaction_remove(reaction,user):
@@ -110,7 +139,6 @@ async def on_reaction_remove(reaction,user):
             if user in message_users[message_id][role]:
                 message_users[message_id][role].remove(user)
 
-
 message_users = {}
 
 @bot.event
@@ -127,7 +155,7 @@ async def on_reaction_add(reaction, user):
                 'keystone': [],
                 'sent': False
                 }
-                    
+                boost_expired(message_id)
         return
     
     if message.content != '<@&989535345370628126>':
@@ -185,8 +213,10 @@ async def kielce(message):
         await message.channel.send(f'Czy to jest boss?')
     if "jestem" in message.content.lower():
         await message.channel.send(f'Jest Dawer?')
-    if "zrob" in message.content.lower() or "zrób" in message.content.lower():
-        await message.channel.send(f'Dziunia nie jestes mojim szefem') 
+    if " zrob " in message.content.lower() or " zrób " in message.content.lower():
+        await message.channel.send(f'Dziunia nie jestes mojim szefem')
+    if "impreza" in message.content.lower():
+        await message.channel.send(f'To jest moja w top 3 ubulio nych impez impeza')
 
 
 @bot.event
@@ -202,17 +232,17 @@ async def on_keystone_message(message):
             dungeon_name = match.group(2)
             dungeon_level = match.group(3)
             server_id = str(message.guild.id)
+            keystones.setdefault(server_id, {})
 
             if dungeon_name not in ['Court of Stars', 'The Azure Vault', 'The Nokhud Offensive', 'Halls of Valor', 'Algeth\'ar Academy', 'Temple of the Jade Serpent', 'Shadowmoon Burial Grounds', 'Ruby Life Pools']:
             # if dungeon_name not in ['Brackenhide Hollow', 'Halls of Infusion', 'Uldaman, Legacy of Tyr', "Neltharus", "Freehold", "The Underrot", "Neltharion's Lair", "The Vortex Pinnacle"]:
                 unrecognized_dungeons = True
                 continue
-            for dungeon, data in keystones.items():
+            for dungeon, data in keystones[server_id].items():
                 if key_name in data and dungeon != dungeon_name:
                     data.pop(key_name)
 
             author_id = str(message.author.id)
-            keystones.setdefault(server_id, {})
             keystones[server_id].setdefault(dungeon_name, {})
             keystones[server_id][dungeon_name].setdefault(key_name, {})
             keystones[server_id][dungeon_name][key_name][dungeon_level] = author_id
@@ -351,10 +381,10 @@ async def rio(ctx, arg1=None, arg2=None, arg3=None):
         "29" : "233",
         "30" : "240"
  }
-    if arg2 is None or arg1 is None or (arg3 is not None and arg3.lower() not in ["tyra", "tyrannical", "t", "forti", "f", "fortified"]):
+    if arg1 is None or (arg3 is not None and arg3.lower() not in ["tyra", "tyrannical", "t", "forti", "f", "fortified"]):
         await ctx.send(f"Wrong format, try: \"/rio <character>-<realm> <level> <f or t> (optional)\"")
         return
-    if arg2 not in base_score:
+    if arg2 is not None and arg2 not in base_score:
         await ctx.send(f"Dungeon level inappropriate")
         return
     if "-" in arg1:
@@ -368,16 +398,30 @@ async def rio(ctx, arg1=None, arg2=None, arg3=None):
     url = f"https://raider.io/api/v1/characters/profile?region=eu&realm={realm}&name={name}&fields=mythic_plus_best_runs"
     url2 = f"https://raider.io/api/v1/characters/profile?region=eu&realm={realm}&name={name}&fields=mythic_plus_alternate_runs"
     url3 = f"https://raider.io/api/v1/characters/profile?region=eu&realm={realm}&name={name}&fields=mythic_plus_scores_by_season%3Acurrent"
-
-    response = requests.get(url)
-    response2 = requests.get(url2)
-    response3 = requests.get(url3)
+    if all(url in cache for url in [url, url2, url3]):
+        response = cache[url]
+        response2 = cache[url2]
+        response3 = cache[url3]
+    else:
+        response = requests.get(url)
+        response2 = requests.get(url2)
+        response3 = requests.get(url3)
+        cache[url] = response
+        cache[url2] = response2
+        cache[url3] = response3
     if response.status_code == 200 and response2.status_code == 200 and response3.status_code == 200:
         overall_score = response3.json()["mythic_plus_scores_by_season"][0]["scores"]["all"]
+        nick = response.json()["name"]
         dungeon_list_tyra = {}
         dungeon_list_forti = {}
         best_runs = response.json()["mythic_plus_best_runs"]
         alt_runs = response2.json()["mythic_plus_alternate_runs"]
+        if arg2 == None:
+            if nick.endswith("s"):
+                await ctx.send(f"{nick}' score: {overall_score}")
+            else:
+                await ctx.send(f"{nick}'s score: {overall_score}")
+            return
         for dungeon in all_dungeons:
             if not any(item["dungeon"] == dungeon for item in best_runs):
                 my_dict = {"dungeon": dungeon, "score": 0, "affixes": [{"name": "Fortified",}]}
@@ -473,15 +517,52 @@ async def rio(ctx, arg1=None, arg2=None, arg3=None):
         if points_at_lvl:
             summed = sum(points_at_lvl)
             summed_score = summed.__round__(1) + overall_score
-            await ctx.send(f'{summed.__round__(1)} for a total of {summed_score.__round__(1)}')
+            await ctx.send(f'{summed.__round__(1)} for a score of {summed_score.__round__(1)}')
         if rio_increase:
                     total_score = sum(rio_increase.values())
+                    summed_score = total_score + overall_score
                     for key, value in rio_increase.items():
                         message_to_send.append(f"{key} - {value}")
-                    message_to_send.append(f"\nTotal: {total_score.__round__(1)}")
+                    message_to_send.append(f"\nTotal: {total_score.__round__(1)}, for a score of {summed_score}")
                     message_to_send = "\n".join(message_to_send)
                     await ctx.send(message_to_send)
     else:
         await ctx.send(f"Error retrieving data: {response.status_code}")               
         
+@bot.command()
+async def ilvl(ctx, arg):
+    keystones_ilvl = {
+        "2": (402, 415),
+        "3": (405, 418),
+        "4": (405, 421),
+        "5": (408, 421),
+        "6": (408, 424),
+        "7": (411, 424),
+        "8": (411, 428),
+        "9": (415, 428),
+        "10": (415, 431),
+        "11": (418, 431),
+        "12": (418, 434),
+        "13": (421, 434),
+        "14": (421, 437),
+        "15": (424, 437),
+        "16": (424, 441),
+        "17": (428, 441),
+        "18": (428, 444),
+        "19": (431, 444),
+        "20": (431, 447)
+    }
+
+
+    if int(arg) > 20:
+        end_of_dung_ilvl = keystones_ilvl["20"][0]
+        gv_ilvl = keystones_ilvl["20"][1]
+    elif arg in keystones_ilvl:
+        end_of_dung_ilvl = keystones_ilvl[arg][0]
+        gv_ilvl = keystones_ilvl[arg][1]
+    else:
+        await ctx.send("Inappropriate dungeon level")
+        return
+    await ctx.send(f"End of dungeon ilvl: **{end_of_dung_ilvl}**\nGreat Vault ilvl: **{gv_ilvl}**")
+
 bot.run(TOKEN)
