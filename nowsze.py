@@ -418,9 +418,9 @@ async def rio(ctx, arg1=None, arg2=None, arg3=None):
         alt_runs = response2.json()["mythic_plus_alternate_runs"]
         if arg2 == None:
             if nick.endswith("s"):
-                await ctx.send(f"{nick}' score: {overall_score}")
+                await ctx.send(f"{nick}' score: **{overall_score}**")
             else:
-                await ctx.send(f"{nick}'s score: {overall_score}")
+                await ctx.send(f"{nick}'s score: **{overall_score}**")
             return
         for dungeon in all_dungeons:
             if not any(item["dungeon"] == dungeon for item in best_runs):
@@ -517,20 +517,21 @@ async def rio(ctx, arg1=None, arg2=None, arg3=None):
         if points_at_lvl:
             summed = sum(points_at_lvl)
             summed_score = summed.__round__(1) + overall_score
-            await ctx.send(f'{summed.__round__(1)} for a score of {summed_score.__round__(1)}')
+            await ctx.send(f'**{summed.__round__(1)}** for a score of **{summed_score.__round__(1)}**')
         if rio_increase:
                     total_score = sum(rio_increase.values())
                     summed_score = total_score + overall_score
                     for key, value in rio_increase.items():
-                        message_to_send.append(f"{key} - {value}")
-                    message_to_send.append(f"\nTotal: {total_score.__round__(1)}, for a score of {summed_score}")
+                        message_to_send.append(f"{key} - **{value}**")
+                    message_to_send.append(f"\nTotal: **{total_score.__round__(1)}**, for a score of **{summed_score}**")
                     message_to_send = "\n".join(message_to_send)
                     await ctx.send(message_to_send)
     else:
         await ctx.send(f"Error retrieving data: {response.status_code}")               
         
 @bot.command()
-async def ilvl(ctx, arg):
+async def ilvl(ctx, arg=None):
+    message_to_send = []
     keystones_ilvl = {
         "2": (402, 415),
         "3": (405, 418),
@@ -553,6 +554,14 @@ async def ilvl(ctx, arg):
         "20": (431, 447)
     }
 
+    if arg == None:
+        for k in keystones_ilvl:
+            end = keystones_ilvl[k][0]
+            gv = keystones_ilvl[k][1]
+            message_to_send.append(f"**{k}**: {end}, {gv}")
+        message_to_send = "\n".join(message_to_send)
+        await ctx.send(message_to_send)
+        return
 
     if int(arg) > 20:
         end_of_dung_ilvl = keystones_ilvl["20"][0]
