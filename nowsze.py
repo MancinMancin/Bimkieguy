@@ -7,6 +7,7 @@ import re
 import requests
 import time
 import schedule
+import datetime
 
 from config import TOKEN
 
@@ -36,9 +37,22 @@ async def reset_cache():
 async def start_cache_reset():
     await reset_cache()
 
+async def check():
+    while True:
+        for message_id, data in message_ids.items():
+            if datetime.datetime.utcnow() - data["time"] > datetime.timedelta(days=14):
+                del message_ids[message_id]
+        for message_id, data in message_users.items():
+            if datetime.datetime.utcnow() - data["time"] > datetime.timedelta(hours=6):
+                del message_users[message_id]
+        await asyncio.sleep(24 * 60 * 60)
+
+async def start_check():
+    await check()
 @bot.event
 async def on_ready():
     print(f'Logged in as {bot.user}')
+    bot.loop.create_task(start_check())
     bot.loop.create_task(start_cache_reset())
     # bot.loop.create_task(scheduler())
 
@@ -55,6 +69,61 @@ async def on_message(message):
     await kielce(message)
     await on_keystone_message(message)
     await bot.process_commands(message)
+
+embeds_to_edit = []
+message_ids = {}
+ping_messages = {}
+
+async def make_embed(name, link, dicto, foot, foot_icon, desc):
+    embed = discord.Embed(
+        title = name,
+        description=desc,
+        color = discord.Color.blue()
+    )
+    embed.set_thumbnail(url=link)
+    embed.set_footer(text=(f"Made by {foot}"), icon_url=foot_icon)
+    for k, _ in dicto.items():
+        val = dicto[k][0]
+        boo = dicto[k][1]
+        embed.add_field(name=k, value=val, inline=boo)
+    return embed
+
+async def edit_embed(embed, message_id):
+    new_embed = discord.Embed.from_dict(embed.to_dict())
+    new_fields = []
+    for field in new_embed.fields:
+        if field.name == "Total:":
+            total = len(message_ids[message_id]["tanks"] + message_ids[message_id]["healers"] + message_ids[message_id]["dps"])
+            tent = len(message_ids[message_id]["tentative"])
+            if len(message_ids[message_id]["tentative"]) == 0:
+                field.value = total
+            else:
+                field.value = f"{total} + {tent}"
+        elif "<:Tank_icon:1103828509996089499>__**Tanks**__" in field.name:
+            field.name = f"<:Tank_icon:1103828509996089499>__**Tanks**__ (`{len(message_ids[message_id]['tanks'])}`):"
+            tank_list = ", ".join(f"`{message_ids[message_id]['users'].index(tank) + 1}`{tank}" for tank in message_ids[message_id]["tanks"])
+            field.value = tank_list
+        elif "<:Healer_icon:1103828598722416690>__**Healers**__" in field.name:
+            field.name = f"<:Healer_icon:1103828598722416690>__**Healers**__ (`{len(message_ids[message_id]['healers'])}`):"
+            healer_list = ", ".join(f"`{message_ids[message_id]['users'].index(tank) + 1}`{tank}" for tank in message_ids[message_id]["healers"])
+            field.value = healer_list
+        elif "<:Dps_icon:1103828601075413145>__**Dps**__" in field.name:
+            field.name = f"<:Dps_icon:1103828601075413145>__**Dps**__ (`{len(message_ids[message_id]['dps'])}`):"
+            dps_list = ", ".join(f"`{message_ids[message_id]['users'].index(tank) + 1}`{tank}" for tank in message_ids[message_id]["dps"])
+            field.value = dps_list
+        elif "Tentative" in field.name:
+            field.name = f"Tentative (`{len(message_ids[message_id]['tentative'])}`):"
+            tent_list = ", ".join(f"`{message_ids[message_id]['users'].index(tank) + 1}`{tank}" for tank in message_ids[message_id]["tentative"])
+            field.value = tent_list
+        elif "Absence" in field.name:
+            field.name = f"Absence (`{len(message_ids[message_id]['absent'])}`):"
+            abs_list = ", ".join(f"`{message_ids[message_id]['users'].index(tank) + 1}`{tank}" for tank in message_ids[message_id]["absent"])
+            field.value = abs_list
+        new_fields.append(field)
+    new_embed.clear_fields()
+    for field in new_fields:
+        new_embed.add_field(name=field.name, value=field.value, inline=field.inline)
+    return new_embed
       
 
 def select_elements(list_1, list_2, list_3, list_4):
@@ -109,35 +178,106 @@ def select_elements(list_1, list_2, list_3, list_4):
         if not unique_1 or not unique_2 or not unique_3:
             continue
         return unique_1, unique_2, unique_3, unique_4
-    
-async def boost_expired(boost_msg_id):
-    await asyncio.sleep(6 * 60 * 60)
-    del message_users[boost_msg_id]
+
+@bot.command()
+async def signups(ctx, *args):
+    if len(args) < 2:
+        await ctx.send("Wrong format, try:\n"
+                       "<day> <time> <additional info>")
+        return
+    if re.match(r'^(0?[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$', args[1]):
+        time = args[1]
+    elif re.match(r'^(0?[0-9]|1[0-9]|2[0-3])$', args[1]):
+        time = f"{args[1]}:00"
+    else:
+        await ctx.send("Invalid time given")
+        return
+    name = f"Raid - {args[0]} {time}"
+    desc = ' '.join(args[2:])
+    url = "https://i.imgur.com/9rcj0qB.png"
+    fields = {
+        "Total:": ["0", False],
+        f"<:Tank_icon:1103828509996089499>__**Tanks**__ (`0`):": ["", False],
+        f"<:Healer_icon:1103828598722416690>__**Healers**__ (`0`):": ["", False],
+        f"<:Dps_icon:1103828601075413145>__**Dps**__ (`0`):": ["", False],
+        f"Tentative (`0`):": ["", False],
+        f"Absence (`0`):": ["", False]
+    }
+    foot = ctx.author
+    foot_icon = ctx.author.avatar.url
+    embed = await make_embed(name, url, fields, foot, foot_icon, desc)
+    await ctx.message.delete()
+    ping_message = await ctx.send("@here")
+    su_message = await ctx.send(embed=embed)
+    message_ids.update({su_message.id: {"tanks": [],
+                                        "healers": [],
+                                        "dps": [],
+                                        "tentative": [],
+                                        "absent": [],
+                                        "users": [],
+                                        "time": datetime.datetime.utcnow()
+                                        }})
+    embeds_to_edit.append(su_message)
+    ping_messages.update({su_message.id: ping_message})
+    await su_message.add_reaction("<:Tank_icon:1103828509996089499>")
+    await su_message.add_reaction("<:Healer_icon:1103828598722416690>")
+    await su_message.add_reaction("<:Dps_icon:1103828601075413145>")
+    await su_message.add_reaction("❓")
+    await su_message.add_reaction("<:negative:1104352809626902639>")
+    await su_message.add_reaction("❎")
 
 @bot.event
-async def on_reaction_remove(reaction,user):
+async def on_reaction_remove(reaction, user):
     if user.bot:
         return
     
     message_id = reaction.message.id
     message = reaction.message
-    if message.content != '<@&989535345370628126>':
-        return
-    if message_id in message_users:
+    if '<@&989535345370628126>' in message.content:
+        if message_id in message_users:
 
+            role = None
+            if str(reaction.emoji) == '<:Tank:1095150384164634624>':
+                role = 'tanks'
+            elif str(reaction.emoji) == '<:Healer:1095151227379130418>':
+                role = 'healers'
+            elif str(reaction.emoji) == '<:DPS:1095151144864579725>':
+                role = 'dps'
+            elif str(reaction.emoji) == '<:Keystone:1095145259903750265>':
+                role = 'keystone'
+
+            if role:
+                if user in message_users[message_id][role]:
+                    message_users[message_id][role].remove(user)
+    if message_id in message_ids.keys():
         role = None
-        if str(reaction.emoji) == '<:Tank:1095150384164634624>':
-            role = 'tanks'
-        elif str(reaction.emoji) == '<:Healer:1095151227379130418>':
-            role = 'healers'
-        elif str(reaction.emoji) == '<:DPS:1095151144864579725>':
-            role = 'dps'
-        elif str(reaction.emoji) == '<:Keystone:1095145259903750265>':
-            role = 'keystone'
-
+        if str(reaction.emoji) == "<:Tank_icon:1103828509996089499>":
+            role = "tanks"
+        elif str(reaction.emoji) == "<:Healer_icon:1103828598722416690>":
+            role = "healers"
+        elif str(reaction.emoji) == "<:Dps_icon:1103828601075413145>":
+            role = "dps"
+        elif str(reaction.emoji) == "❓":
+            role = "tentative"
+        elif str(reaction.emoji) == "<:negative:1104352809626902639>":
+            role = "absent"
         if role:
-            if user in message_users[message_id][role]:
-                message_users[message_id][role].remove(user)
+            if user not in message_ids[message_id][role]:
+                try:
+                    message_ids[message_id][role].remove(f"<@{user.id}>")
+                except:
+                    return
+            for role2, _ in message_ids[message_id].items():
+                if role2 not in ["time", "users"]:
+                    if user not in message_ids[message_id].values():
+                        message_ids[message_id]["users"].remove(f"<@{user.id}>")
+                        break
+        for message in embeds_to_edit:
+            if message.id == message_id:
+                embed = message.embeds[0]
+                edit_message = message
+        edited_embed = await edit_embed(embed, message_id)
+        await edit_message.edit(embed=edited_embed)
 
 message_users = {}
 
@@ -145,65 +285,112 @@ message_users = {}
 async def on_reaction_add(reaction, user):
     message_id = reaction.message.id
     message = reaction.message
-    if user.bot:
-        if message_id not in message_users:
-                message_users[message_id] = {
-                'lock': asyncio.Lock(),
-                'tanks': [],
-                'healers': [],
-                'dps': [],
-                'keystone': [],
-                'sent': False
-                }
-                boost_expired(message_id)
-        return
-    
-    if message.content != '<@&989535345370628126>':
-        return
-    if message_id in message_users:
-    
-        role = None
-        if str(reaction.emoji) == '<:Tank:1095150384164634624>':
-            role = 'tanks'
-        elif str(reaction.emoji) == '<:Healer:1095151227379130418>':
-            role = 'healers'
-        elif str(reaction.emoji) == '<:DPS:1095151144864579725>':
-            role = 'dps'
-        elif str(reaction.emoji) == '<:Keystone:1095145259903750265>':
-            role = 'keystone'
-        elif str(reaction.emoji) == '<:Muslim_Uncle_Pepe:1098289343627526266>':
-            await message.channel.send(f'Kazzakstan took the boost {message.jump_url}')
-            del message_users[message_id]
+    if '<@&989535345370628126>' in message.content:
+        if user.bot:
+            if message_id not in message_users:
+                    message_users[message_id] = {
+                    'lock': asyncio.Lock(),
+                    'tanks': [],
+                    'healers': [],
+                    'dps': [],
+                    'keystone': [],
+                    'sent': False,
+                    'time': datetime.datetime.utcnow()
+                    }
             return
+    
+        if message_id in message_users:
         
-        if role:
-            if user not in message_users[message_id][role]:
-                message_users[message_id][role].append(user)
-        
-        async with message_users[message_id]['lock']:
-            if len(message_users[message_id]['tanks']) >= 1 and len(message_users[message_id]['healers']) >= 1 and len(message_users[message_id]['dps']) >=2 and len(set(message_users[message_id]['tanks'] + message_users[message_id]['healers'])) >=2 and len(set(message_users[message_id]['tanks'] + message_users[message_id]['healers'] + message_users[message_id]['dps'])) >= 4 and len(message_users[message_id]['keystone']) >= 1 and any(element in message_users[message_id]['keystone'] for element in message_users[message_id]['tanks'] + message_users[message_id]['healers'] + message_users[message_id]['dps']):
-                if message_users[message_id]['sent'] == False:
-                    await message.channel.send(f"Team can now be made")
-                    message_users[message_id]['sent'] = True
-                
-                await asyncio.sleep(5)
-
+            role = None
+            if str(reaction.emoji) == '<:Tank:1095150384164634624>':
+                role = 'tanks'
+            elif str(reaction.emoji) == '<:Healer:1095151227379130418>':
+                role = 'healers'
+            elif str(reaction.emoji) == '<:DPS:1095151144864579725>':
+                role = 'dps'
+            elif str(reaction.emoji) == '<:Keystone:1095145259903750265>':
+                role = 'keystone'
+            elif str(reaction.emoji) == '<:Muslim_Uncle_Pepe:1098289343627526266>':
+                await message.channel.send(f'Kazzakstan took the boost {message.jump_url}')
+                del message_users[message_id]
+                return
+            
+            if role:
+                if user not in message_users[message_id][role]:
+                    message_users[message_id][role].append(user)
+            
+            async with message_users[message_id]['lock']:
                 if len(message_users[message_id]['tanks']) >= 1 and len(message_users[message_id]['healers']) >= 1 and len(message_users[message_id]['dps']) >=2 and len(set(message_users[message_id]['tanks'] + message_users[message_id]['healers'])) >=2 and len(set(message_users[message_id]['tanks'] + message_users[message_id]['healers'] + message_users[message_id]['dps'])) >= 4 and len(message_users[message_id]['keystone']) >= 1 and any(element in message_users[message_id]['keystone'] for element in message_users[message_id]['tanks'] + message_users[message_id]['healers'] + message_users[message_id]['dps']):
+                    if message_users[message_id]['sent'] == False:
+                        await message.channel.send(f"Team can now be made")
+                        message_users[message_id]['sent'] = True
+                    
+                    await asyncio.sleep(5)
 
-                    tank_users, healer_users, dps_users, keystone_users = (select_elements(message_users[message_id]['tanks'], message_users[message_id]['healers'], message_users[message_id]['dps'], message_users[message_id]['keystone']))
-                        
-                    await message.channel.send(f"Keystone team:\n<:Tank:1095150384164634624> {tank_users.mention}\n<:Healer:1095151227379130418> {healer_users.mention}\n<:DPS:1095151144864579725> {dps_users[0].mention}\n<:DPS:1095151144864579725> {dps_users[1].mention}\n<:Keystone:1095145259903750265> {keystone_users.mention}\n```{tank_users.mention}\n{healer_users.mention}\n{dps_users[0].mention}\n{dps_users[1].mention}```")
+                    if len(message_users[message_id]['tanks']) >= 1 and len(message_users[message_id]['healers']) >= 1 and len(message_users[message_id]['dps']) >=2 and len(set(message_users[message_id]['tanks'] + message_users[message_id]['healers'])) >=2 and len(set(message_users[message_id]['tanks'] + message_users[message_id]['healers'] + message_users[message_id]['dps'])) >= 4 and len(message_users[message_id]['keystone']) >= 1 and any(element in message_users[message_id]['keystone'] for element in message_users[message_id]['tanks'] + message_users[message_id]['healers'] + message_users[message_id]['dps']):
 
-                    tank_users = []
-                    healer_users = []
-                    dps_users = []
-                    keystone_users = []
-                    del message_users[message_id]
-                        
-                else:
-                    await message.channel.send(f"Cannot form a team due to people unsigning.")
-                    message_users[message_id]['sent'] = False
-                
+                        tank_users, healer_users, dps_users, keystone_users = (select_elements(message_users[message_id]['tanks'], message_users[message_id]['healers'], message_users[message_id]['dps'], message_users[message_id]['keystone']))
+                            
+                        await message.channel.send(f"Keystone team:\n<:Tank:1095150384164634624> {tank_users.mention}\n<:Healer:1095151227379130418> {healer_users.mention}\n<:DPS:1095151144864579725> {dps_users[0].mention}\n<:DPS:1095151144864579725> {dps_users[1].mention}\n<:Keystone:1095145259903750265> {keystone_users.mention}\n```{tank_users.mention}\n{healer_users.mention}\n{dps_users[0].mention}\n{dps_users[1].mention}```")
+
+                        tank_users = []
+                        healer_users = []
+                        dps_users = []
+                        keystone_users = []
+                        del message_users[message_id]
+                            
+                    else:
+                        await message.channel.send(f"Cannot form a team due to people unsigning.")
+                        message_users[message_id]['sent'] = False
+    if message_id in message_ids.keys():
+        if user.bot:
+            return
+        for message in embeds_to_edit:
+            if message.id == message_id:
+                my_embed = message.embeds[0]
+        my_footer = my_embed.footer
+        role = None
+        if str(reaction.emoji) == "<:Tank_icon:1103828509996089499>":
+            role = "tanks"
+        elif str(reaction.emoji) == "<:Healer_icon:1103828598722416690>":
+            role = "healers"
+        elif str(reaction.emoji) == "<:Dps_icon:1103828601075413145>":
+            role = "dps"
+        elif str(reaction.emoji) == "❓":
+            role = "tentative"
+        elif str(reaction.emoji) == "<:negative:1104352809626902639>":
+            role = "absent"
+        elif str(reaction.emoji) == "❎" and user.name in my_footer.text:
+            ping_message = ping_messages[message_id]
+            msg = [msg for msg in embeds_to_edit if msg.id == message_id][0]
+            await msg.delete()
+            await ping_message.delete()
+            del message_ids[message_id]
+            return
+        if role:
+            for role2, user_list in message_ids[message_id].items():
+                if role2 not in ["time", "users"]:
+                    if (f"<@{user.id}>") in user_list:
+                        message_ids[message_id][role2].remove(f"<@{user.id}>")
+                        emojis = {
+                        "tanks": "<:Tank_icon:1103828509996089499>",
+                        "healers": "<:Healer_icon:1103828598722416690>",
+                        "dps": "<:Dps_icon:1103828601075413145>",
+                        "tentative": "❓",
+                        "absent": "<:negative:1104352809626902639>"
+                    }
+                        emoji = emojis[role2]
+                        await reaction.message.remove_reaction(emoji, user)
+            if (f"<@{user.id}>") not in message_ids[message_id]["users"]:
+                message_ids[message_id]["users"].append(f"<@{user.id}>")
+            message_ids[message_id][role].append(f"<@{user.id}>")
+
+        for message in embeds_to_edit:
+            if message.id == message_id:
+                embed = message.embeds[0]
+                edit_message = message
+        edited_embed = await edit_embed(embed, message_id)
+        await edit_message.edit(embed=edited_embed)            
 
 @bot.event
 async def kielce(message):
@@ -260,37 +447,33 @@ async def on_keystone_message(message):
         if key_name in keystones[server_id][dungeon_name]:
             await message.delete()
 
-@bot.event
-async def om_guild_remove(guild):
-    server_id = str(guild.id)
-    if server_id in keystones:
-        del keystones[server_id]
 
 @bot.command()
 async def keys(ctx, *, arg=None):
     server_id = str(ctx.guild.id)
-    abbreviations = {
-    'cos': 'Court of Stars',
-    'av': 'The Azure Vault',
-    'no': 'The Nokhud Offensive',
-    'hov': 'Halls of Valor',
-    'aa': 'Algeth\'ar Academy',
-    'tjs': 'Temple of the Jade Serpent',
-    'sbg': 'Shadowmoon Burial Grounds',
-    'rlp': 'Ruby Life Pools',
-}
-#     abbreviations = {
-#     'bh': 'Brackenhide Hollow',
-#     'hoi': 'Halls of Infusion',
-#     'uld': 'Uldaman, Legacy of Tyr',
-#     'nelt': 'Neltharus',
-#     'fh': 'Freehold',
-#     'ur': 'The Underrot',
-#     'nl': "Neltharion's Lair",
-#     'vp': 'The Vortex Pinnacle',
-# }
+
     matching_keys = []
     message_to_send = []
+    abbreviations = {
+'cos': 'Court of Stars',
+'av': 'The Azure Vault',
+'no': 'The Nokhud Offensive',
+'hov': 'Halls of Valor',
+'aa': 'Algeth\'ar Academy',
+'tjs': 'Temple of the Jade Serpent',
+'sbg': 'Shadowmoon Burial Grounds',
+'rlp': 'Ruby Life Pools',
+}
+# abbreviations = {
+# 'bh': 'Brackenhide Hollow',
+# 'hoi': 'Halls of Infusion',
+# 'uld': 'Uldaman, Legacy of Tyr',
+# 'nelt': 'Neltharus',
+# 'fh': 'Freehold',
+# 'ur': 'The Underrot',
+# 'nl': "Neltharion's Lair",
+# 'vp': 'The Vortex Pinnacle',
+# }
     if arg is None:
         if len(keystones.get(server_id, {})) > 0:            
             for key, data in keystones[server_id].items():
