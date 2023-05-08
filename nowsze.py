@@ -8,13 +8,42 @@ import requests
 import time
 import schedule
 import datetime
+import os
+from dungeon_guides import dungeon_guides
 
 from config import TOKEN
 
 bot = commands.Bot(command_prefix='/', intents=discord.Intents.all())
+bot.remove_command("help")
 
 with open('keys.json', 'r') as f:
     keystones = json.load(f)
+
+@bot.command()
+async def help(ctx):
+    name = "Bimkie Guy commands"
+    url = "https://i.imgur.com/Ctg5Poz.jpg"
+    color = "#f9b4d4"
+    fields = {
+        "Signup Event": ("🔸/signups <day> <time> <additonal info>", False),
+        "Keys Storage": ("🔸/keys\n"
+            "🔸/keys <dungeon>\n"
+            "🔸/keys <character>\n"
+            "🔸/keys <user ping>\n"
+            "🔸/keys <abbr>\n" 
+            "🔸<keyholder> - [Keystone: <dungeon> (<level>)]", False),
+        "Raider.io": ("🔸/rio <character>-<realm>\n"
+            "🔸/rio <character>-<realm> <level>\n"
+            "🔸/rio <character>-<realm> <level> <f or t>", False),
+        "Dungeon ilvls": ("🔸/ilvl\n"
+            "🔸/ilvl <level>\n", False),
+        "Dungeon Guides": ("🔸/guide <dungeon>", False)
+    }
+    foot = "Mancin Mancin"
+    foot_icon = "https://media.discordapp.net/attachments/1087696437426528269/1089293104089137282/OIG.awIefY1fsoRX0.jpg?width=676&height=676"
+    desc = None
+    embed = await make_embed(name, url, fields, foot, foot_icon, desc, color)
+    await ctx.send(embed=embed)
 
 # async def reset_keystones():
 #     keystones.clear()
@@ -74,11 +103,11 @@ embeds_to_edit = []
 message_ids = {}
 ping_messages = {}
 
-async def make_embed(name, link, dicto, foot, foot_icon, desc):
+async def make_embed(name, link, dicto, foot, foot_icon, desc, color):
     embed = discord.Embed(
         title = name,
-        description=desc,
-        color = discord.Color.blue()
+        description = desc,
+        color = discord.Color(int(color[1:], 16))
     )
     embed.set_thumbnail(url=link)
     embed.set_footer(text=(f"Made by {foot}"), icon_url=foot_icon)
@@ -194,6 +223,7 @@ async def signups(ctx, *args):
         return
     name = f"Raid - {args[0]} {time}"
     desc = ' '.join(args[2:])
+    color = "#575660"
     url = "https://i.imgur.com/9rcj0qB.png"
     fields = {
         "Total:": ["0", False],
@@ -205,7 +235,7 @@ async def signups(ctx, *args):
     }
     foot = ctx.author
     foot_icon = ctx.author.avatar.url
-    embed = await make_embed(name, url, fields, foot, foot_icon, desc)
+    embed = await make_embed(name, url, fields, foot, foot_icon, desc, color)
     await ctx.message.delete()
     ping_message = await ctx.send("@here")
     su_message = await ctx.send(embed=embed)
@@ -465,12 +495,12 @@ async def keys(ctx, *, arg=None):
 'rlp': 'Ruby Life Pools',
 }
 # abbreviations = {
-# 'bh': 'Brackenhide Hollow',
-# 'hoi': 'Halls of Infusion',
 # 'uld': 'Uldaman, Legacy of Tyr',
+# 'bh': 'Brackenhide Hollow',
 # 'nelt': 'Neltharus',
-# 'fh': 'Freehold',
+# 'hoi': 'Halls of Infusion',
 # 'ur': 'The Underrot',
+# 'fh': 'Freehold',
 # 'nl': "Neltharion's Lair",
 # 'vp': 'The Vortex Pinnacle',
 # }
@@ -756,5 +786,29 @@ async def ilvl(ctx, arg=None):
         await ctx.send("Inappropriate dungeon level")
         return
     await ctx.send(f"End of dungeon ilvl: **{end_of_dung_ilvl}**\nGreat Vault ilvl: **{gv_ilvl}**")
+
+@bot.command()
+async def guide(ctx, *, arg=None):
+    for dungeon in dungeon_guides:
+        if dungeon["abbr"] == arg.lower() or dungeon["name"].lower() == arg.lower():
+            guide = dungeon
+            break
+    else:
+        abbr = []
+        abbr.append("Try: /guide <dungeon>\n")
+        for d in dungeon_guides:
+            abbr.append(f'"{d["abbr"]}" for {d["name"]}')
+        message_to_send = "\n".join(abbr)
+        await ctx.send(message_to_send)
+        return
+    name = guide["name"]
+    url = guide["url"]
+    color = guide["color"]
+    fields = guide["fields"]
+    foot = "Mancin Mancin"
+    foot_icon = 'https://media.discordapp.net/attachments/1087696437426528269/1089293104089137282/OIG.awIefY1fsoRX0.jpg?width=676&height=676'
+    desc = None    
+    embed = await make_embed(name, url, fields, foot, foot_icon, desc, color)
+    await ctx.send(embed=embed)
 
 bot.run(TOKEN)
