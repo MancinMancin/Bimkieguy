@@ -112,7 +112,7 @@ dungeon_guides = [
                                                     "🔸***Master's Call*** - <:Interruptable_icon:1103828594049953822>\n\n"
                                                     "🔸<:Tank_icon:1103828509996089499> ***Gut Shot***", False),
             "Trash before Treemouth": ("<:forti:1103755144170049636> __**Stinkbreath**__:\n"
-                                       "🔸***Stink Breath*** - **Dodge** - disorients for 4 seconds\n\n"
+                                       "🔸***Stink Breath*** - **Frontal** - disorients for 4 seconds\n\n"
                                        "<:forti:1103755144170049636> __**Decayed Elder**__:\n"
                                        "🔸***Withering Roots*** - <:Interruptable_icon:1103828594049953822> **Roots** & **DoT**\n\n"
                                        "<:forti:1103755144170049636> __**Wilted Oak**__:\n"
@@ -336,12 +336,12 @@ dungeon_guides = [
                                     "🔸Burrowed in the ground, will pull if you come close\n\n"
                                     "<:forti:1103755144170049636> __**Bloodsworn Defiler**__:\n"
                                     "🔸***Withering Curse*** - <:Warning_icon:1103828508981071922> deals heavy damage and applies **10% damage taken increase & 10% damage done decrease**, stacking\n"
-                                    "🔸***Shadow Bolt Volley - <:Interruptable_icon:1103828594049953822>\n"
+                                    "🔸***Shadow Bolt Volley*** - <:Interruptable_icon:1103828594049953822>\n"
                                     "🔸***Summon Spirit Drain Totem*** - **Avoid**", False),
             "<:tyra:1103755194300383342> Sporecaller Zancha (3rd Boss)": ("🔸***Boundless Rot*** - **Destroy** them before ***Festering Harvest***\n\n"
                                               "🔸***Festering Harvest*** - <:Important_icon:1103828596734296074><:Deadly_icon:1103828603319353394> deals party wide damage, applies ***Decaying Spores*** per remaining spore pod\n\n"
                                               "🔸***Decaying Spores*** - <:Disease_icon:1103828600140070952> stacking DoT\n\n"
-                                              "🔸***Volatile Pods*** - **Dodge** - spawns red mushroom which spawn multiple orbs\n\n"
+                                              "🔸***Volatile Pods*** - **Dodge** - spawns red mushrooms which spawn multiple orbs\n\n"
                                               "🔸***Upheaval*** - **Destroy** spore pods\n\n"
                                               "🔸<:Tank_icon:1103828509996089499> ***Shockwave*** - **Frontal** - **destroy** spore pods", False),
             "Trash before Unbound Abomination": ("<:forti:1103755144170049636> __**Faceless Corruptor**__:\n"

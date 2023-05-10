@@ -237,7 +237,7 @@ async def signups(ctx, *args):
     foot_icon = ctx.author.avatar.url
     embed = await make_embed(name, url, fields, foot, foot_icon, desc, color)
     await ctx.message.delete()
-    ping_message = await ctx.send("@here")
+    ping_message = await ctx.send("<@&1105548968697540679>")
     su_message = await ctx.send(embed=embed)
     message_ids.update({su_message.id: {"tanks": [],
                                         "healers": [],
@@ -451,8 +451,7 @@ async def on_keystone_message(message):
             server_id = str(message.guild.id)
             keystones.setdefault(server_id, {})
 
-            if dungeon_name not in ['Court of Stars', 'The Azure Vault', 'The Nokhud Offensive', 'Halls of Valor', 'Algeth\'ar Academy', 'Temple of the Jade Serpent', 'Shadowmoon Burial Grounds', 'Ruby Life Pools']:
-            # if dungeon_name not in ['Brackenhide Hollow', 'Halls of Infusion', 'Uldaman, Legacy of Tyr', "Neltharus", "Freehold", "The Underrot", "Neltharion's Lair", "The Vortex Pinnacle"]:
+            if dungeon_name not in ['Brackenhide Hollow', 'Halls of Infusion', 'Uldaman, Legacy of Tyr', "Neltharus", "Freehold", "The Underrot", "Neltharion's Lair", "The Vortex Pinnacle"]:
                 unrecognized_dungeons = True
                 continue
             for dungeon, data in keystones[server_id].items():
@@ -485,25 +484,15 @@ async def keys(ctx, *, arg=None):
     matching_keys = []
     message_to_send = []
     abbreviations = {
-'cos': 'Court of Stars',
-'av': 'The Azure Vault',
-'no': 'The Nokhud Offensive',
-'hov': 'Halls of Valor',
-'aa': 'Algeth\'ar Academy',
-'tjs': 'Temple of the Jade Serpent',
-'sbg': 'Shadowmoon Burial Grounds',
-'rlp': 'Ruby Life Pools',
+'uld': 'Uldaman, Legacy of Tyr',
+'bh': 'Brackenhide Hollow',
+'nelt': 'Neltharus',
+'hoi': 'Halls of Infusion',
+'ur': 'The Underrot',
+'fh': 'Freehold',
+'nl': "Neltharion's Lair",
+'vp': 'The Vortex Pinnacle',
 }
-# abbreviations = {
-# 'uld': 'Uldaman, Legacy of Tyr',
-# 'bh': 'Brackenhide Hollow',
-# 'nelt': 'Neltharus',
-# 'hoi': 'Halls of Infusion',
-# 'ur': 'The Underrot',
-# 'fh': 'Freehold',
-# 'nl': "Neltharion's Lair",
-# 'vp': 'The Vortex Pinnacle',
-# }
     if arg is None:
         if len(keystones.get(server_id, {})) > 0:            
             for key, data in keystones[server_id].items():
