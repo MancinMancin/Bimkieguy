@@ -2,7 +2,7 @@ dungeon_guides = [
     {
         "abbr": "uld",
         "color": "#b66f32",
-        "name": "Uldaman, Legacy of Tyr",
+        "name": "Uldaman: Legacy of Tyr",
         "url": "https://static.icy-veins.com/images/wow/og-images/uldaman-legacy-of-tyr.jpg",
         "fields": {
             "Checkpoints": ("🔸There are 3 checkpoints in the dungeon using the **Mole Machine**, they unlock when:\n"

@@ -451,7 +451,7 @@ async def on_keystone_message(message):
             server_id = str(message.guild.id)
             keystones.setdefault(server_id, {})
 
-            if dungeon_name not in ['Brackenhide Hollow', 'Halls of Infusion', 'Uldaman, Legacy of Tyr', "Neltharus", "Freehold", "The Underrot", "Neltharion's Lair", "The Vortex Pinnacle"]:
+            if dungeon_name not in ['Brackenhide Hollow', 'Halls of Infusion', 'Uldaman: Legacy of Tyr', "Neltharus", "Freehold", "The Underrot", "Neltharion's Lair", "The Vortex Pinnacle"]:
                 unrecognized_dungeons = True
                 continue
             for dungeon, data in keystones[server_id].items():
@@ -484,7 +484,7 @@ async def keys(ctx, *, arg=None):
     matching_keys = []
     message_to_send = []
     abbreviations = {
-'uld': 'Uldaman, Legacy of Tyr',
+'uld': 'Uldaman: Legacy of Tyr',
 'bh': 'Brackenhide Hollow',
 'nelt': 'Neltharus',
 'hoi': 'Halls of Infusion',
@@ -520,36 +520,41 @@ async def keys(ctx, *, arg=None):
                 await ctx.send(message_to_send)
         else:
             await ctx.send(f'There are no keys for {key}')
-    elif any(arg.lower() in str(val).lower() for _, val in keystones[server_id].items()):
-        for key, data in keystones[server_id].items():
-            for keyholder, level in data.items():
-                if keyholder.lower() == arg.lower():
-                    matching_keys.append(f'{keyholder} - [Keystone: {key} ({", ".join(list(level.keys()))})]')
-        if matching_keys:
-            message_to_send = '\n'.join(matching_keys)
-            await ctx.send(message_to_send)
     elif arg.lower() == 'abbr':
         abbreviations_text = '\n'.join([f'"{key}" for {value}' for key, value in abbreviations.items()])
         await ctx.send(f'{abbreviations_text}')
     elif arg.startswith('<@') and arg.endswith('>'):
         member = int(arg[2:-1])
-        for key, data in keystones[server_id].items():
-            for keyholder, level in data.items():
-                if member == int(list(level.values())[0]):
-                    matching_keys.append(f'{keyholder} - [Keystone: {key} ({", ".join(list(level.keys()))})]')
-        if matching_keys:
-            message_to_send = '\n'.join(matching_keys)
-            await ctx.send(message_to_send)
+        if server_id in keystones:
+            for key, data in keystones[server_id].items():
+                for keyholder, level in data.items():
+                    if member == int(list(level.values())[0]):
+                        matching_keys.append(f'{keyholder} - [Keystone: {key} ({", ".join(list(level.keys()))})]')
+            if matching_keys:
+                message_to_send = '\n'.join(matching_keys)
+                await ctx.send(message_to_send)
+            else:
+                await ctx.send("User doesn't have any keys")
         else:
             await ctx.send(f"User doesn't have any keys")
+    elif any(arg.lower() in str(val).lower() for _, val in keystones.get(server_id, {}).items()):
+        if server_id in keystones:
+            for key, data in keystones[server_id].items():
+                for keyholder, level in data.items():
+                    if keyholder.lower() == arg.lower():
+                        matching_keys.append(f'{keyholder} - [Keystone: {key} ({", ".join(list(level.keys()))})]')
+            if matching_keys:
+                message_to_send = '\n'.join(matching_keys)
+                await ctx.send(message_to_send)
+        else:
+            await ctx.send("There are no keys yet")
     else:
         await ctx.send(f'Keyholder is absent in the list, or dungeon provided is invalid, check "/keys abbr"')
 
 
 @bot.command()
 async def rio(ctx, arg1=None, arg2=None, arg3=None):
-    all_dungeons = ["Court of Stars", "Shadowmoon Burial Grounds", "Halls of Valor", "Temple of the Jade Serpent", "Ruby Life Pools", "The Nokhud Offensive", "The Azure Vault", "Algeth'ar Academy"]
-    # all_dungeons = ["The Vortex Pinnacle", "Neltharion's Lair", "The Underrot", "Freehold", "Neltharus", "Uldaman, Legacy of Tyr", "Halls of Infusion", "Brackenhide Hollow"]
+    all_dungeons = ["The Vortex Pinnacle", "Neltharion's Lair", "The Underrot", "Freehold", "Neltharus", "Uldaman: Legacy of Tyr", "Halls of Infusion", "Brackenhide Hollow"]
     message_to_send = []
     default_realm = "burninglegion"
     base_score = {
