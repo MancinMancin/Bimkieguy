@@ -19,8 +19,8 @@ bot.remove_command("help")
 with open('keys.json', 'r') as f:
     keystones = json.load(f)
 
-@bot.command()
-async def help(ctx):
+@bot.tree.command(description="Shows help")
+async def help(interaction: discord.Interaction):
     name = "Bimkie Guy commands"
     url = "https://i.imgur.com/Ctg5Poz.jpg"
     color = "#f9b4d4"
@@ -30,11 +30,14 @@ async def help(ctx):
             "🔸/keys <dungeon>\n"
             "🔸/keys <character>\n"
             "🔸/keys <user ping>\n"
-            "🔸/keys <abbr>\n" 
+            "🔸/keys <level>\n"
+            "🔸/keys <level><- or +>"
+            "🔸/keys abbr\n" 
             "🔸<keyholder> - [Keystone: <dungeon> (<level>)]", False),
         "Raider.io": ("🔸/rio <character>-<realm>\n"
             "🔸/rio <character>-<realm> <level>\n"
             "🔸/rio <character>-<realm> <level> <f or t>", False),
+        "Poll": ("🔸/poll <about>, <option_1>, <option_2>,...", False),
         "Dungeon ilvls": ("🔸/ilvl\n"
             "🔸/ilvl <level>\n", False),
         "Dungeon Guides": ("🔸/guide <dungeon>", False)
@@ -43,7 +46,7 @@ async def help(ctx):
     foot_icon = "https://media.discordapp.net/attachments/1087696437426528269/1089293104089137282/OIG.awIefY1fsoRX0.jpg?width=676&height=676"
     desc = None
     embed = await make_embed(name, url, fields, foot, foot_icon, desc, color)
-    await ctx.send(embed=embed)
+    await interaction.response.send_message(embed=embed)
 
 # async def reset_keystones():
 #     keystones.clear()
@@ -83,6 +86,7 @@ async def on_ready():
     print(f'Logged in as {bot.user}')
     bot.loop.create_task(start_check())
     bot.loop.create_task(start_cache_reset())
+    await bot.tree.sync()
     # bot.loop.create_task(scheduler())
 
 @bot.event
@@ -454,8 +458,8 @@ async def on_keystone_message(message):
             if dungeon_name not in ['Brackenhide Hollow', 'Halls of Infusion', 'Uldaman: Legacy of Tyr', "Neltharus", "Freehold", "The Underrot", "Neltharion's Lair", "The Vortex Pinnacle"]:
                 unrecognized_dungeons = True
                 continue
-            for dungeon, data in keystones[server_id].items():
-                if key_name in data and dungeon != dungeon_name:
+            for _, data in keystones[server_id].items():
+                if key_name in data:
                     data.pop(key_name)
 
             author_id = str(message.author.id)
@@ -503,6 +507,39 @@ async def keys(ctx, *, arg=None):
                 await ctx.send(message_to_send)
         else:
             await ctx.send(f'There are no keys yet')
+    elif arg.isdigit():
+        if server_id in keystones:
+            for key, data in keystones[server_id].items():
+                for keyholder, level in data.items():
+                    if arg in level:
+                        matching_keys.append(f'{keyholder} - [Keystone: {key} ({", ".join(list(level.keys()))})]')
+            if matching_keys:
+                message_to_send = '\n'.join(matching_keys)
+                await ctx.send(message_to_send)
+            else:
+                await ctx.send(f"There are no keys for level {arg}")
+        else:
+            await ctx.send(f"There are no keys yet")
+    elif arg.endswith("-") or arg.endswith("+"):
+        given_levels = arg[:-1]
+        loh = arg[-1]
+        if server_id in keystones:
+            for key, data in keystones[server_id].items():
+                for keyholder, level in data.items():
+                    for c in level.keys():
+                        if loh == ("+"):
+                            if int(c) >= int(given_levels):
+                                matching_keys.append(f'{keyholder} - [Keystone: {key} ({", ".join(list(level.keys()))})]')
+                        elif loh == ("-"):
+                            if int(c) <= int(given_levels):
+                                matching_keys.append(f'{keyholder} - [Keystone: {key} ({", ".join(list(level.keys()))})]')
+            if matching_keys:
+                message_to_send = '\n'.join(matching_keys)
+                await ctx.send(message_to_send)
+            else:
+                await ctx.send(f"There are no keys for levels {arg}")
+        else:
+            await ctx.send(f"There are no keys yet")
     elif arg.lower() == 'reset':
         keystones.clear()
         with open("keys.json", "w") as f:
@@ -681,7 +718,7 @@ async def rio(ctx, arg1=None, arg2=None, arg3=None):
                         if points > forti_score:
                             if forti_score > tyra_score:
                                 score_from_dung = one_half_points + forti_alt - forti_best - tyra_alt
-                            elif forti_score < tyra_score:
+                            elif forti_score <= tyra_score:
                                 score_from_dung = one_half_points - tyra_best
                         if points <= forti_score:
                             score_from_dung = half_points - tyra_alt
@@ -689,7 +726,7 @@ async def rio(ctx, arg1=None, arg2=None, arg3=None):
                             score_from_dung = 0
                     elif arg3.lower() == "forti" or arg3.lower() == "fortified" or arg3.lower() == "f":
                         if points > tyra_score:
-                            if forti_score > tyra_score:
+                            if forti_score >= tyra_score:
                                 score_from_dung = one_half_points - forti_best
                             elif forti_score < tyra_score:
                                 score_from_dung = one_half_points + tyra_alt - tyra_best - forti_alt
@@ -730,7 +767,7 @@ async def rio(ctx, arg1=None, arg2=None, arg3=None):
                     summed_score = total_score + overall_score
                     for key, value in rio_increase.items():
                         message_to_send.append(f"{key} - **{value}**")
-                    message_to_send.append(f"\nTotal: **{total_score.__round__(1)}**, for a score of **{summed_score}**")
+                    message_to_send.append(f"\nTotal: **{total_score.__round__(1)}**, for a score of **{summed_score.__round__(1)}**")
                     message_to_send = "\n".join(message_to_send)
                     await ctx.send(message_to_send)
     else:
@@ -804,5 +841,29 @@ async def guide(ctx, *, arg=None):
     desc = None    
     embed = await make_embed(name, url, fields, foot, foot_icon, desc, color)
     await ctx.send(embed=embed)
+
+@bot.command()
+async def poll(ctx, *, arg):
+    index = arg.find(',')
+    if index == -1:
+        await ctx.send("Please provide options separated by a comma.")
+        return
+
+    options = arg[:index].strip()
+    arguments = arg[index + 1:].split(",")
+
+    message_to_send = []
+    emojis = ["🇦", "🇧", "🇨", "🇩", "🇪", "🇫", "🇬", "🇭", "🇮", "🇯", "🇰", "🇱"]
+
+    for i, argument in enumerate(arguments):
+        emoji = emojis[i] if i < len(emojis) else ''
+        message_to_send.append(f'{emoji} - {argument.strip()}\n')
+
+    poll_message = await ctx.send(f'**Poll:**\n{options}\n\n' + ''.join(message_to_send))
+    await ctx.message.delete()
+
+    for i in range(len(arguments)):
+        if i < len(emojis):
+            await poll_message.add_reaction(emojis[i])
 
 bot.run(TOKEN)
