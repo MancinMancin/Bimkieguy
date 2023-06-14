@@ -56,7 +56,7 @@ async def reset_keystones():
     await channel.send("Key list reset.")
 
 async def scheduler():
-    schedule.every().wednesday.at("06:00").do(reset_keystones)
+    schedule.every().wednesday.at("06:00").do(asyncio.create_task, reset_keystones)
     while True:
         schedule.run_pending()
         await asyncio.sleep(60)
