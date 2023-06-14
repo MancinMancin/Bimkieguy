@@ -59,7 +59,7 @@ async def scheduler():
     schedule.every().wednesday.at("06:00").do(reset_keystones)
     while True:
         schedule.run_pending()
-        time.sleep(60)
+        await asyncio.sleep(60)
 
 cache = {}
 
@@ -165,17 +165,20 @@ async def edit_embed(embed, message_id):
     return new_embed
       
 async def weekly_gaming(tanks, healers, dps):
-    unique_1, unique_2, unique_3 = None, None, None
-    if len(tanks) >= 1 and unique_1 is None:
-        unique_1 = random.choice(list(set(tanks)))
-        healers = [el for el in healers if el != unique_1]
-        dps = [el for el in dps if el != unique_1]
-    if len(healers) >= 1 and unique_2 is None:
-        unique_2 = random.choice(list(set(healers)))
-        dps = [el for el in dps if el != unique_2]
-    if len(dps) >= 3 and unique_3 is None:
-        unique_3 = random.sample(list(set(dps)), 3)
-    return unique_1, unique_2, unique_3
+    while True:
+        unique_1, unique_2, unique_3 = None, None, None
+        if len(tanks) >= 1 and unique_1 is None:
+            unique_1 = random.choice(list(set(tanks)))
+            healers = [el for el in healers if el != unique_1]
+            dps = [el for el in dps if el != unique_1]
+        if len(healers) >= 1 and unique_2 is None:
+            unique_2 = random.choice(list(set(healers)))
+            dps = [el for el in dps if el != unique_2]
+        if len(dps) >= 3 and unique_3 is None:
+            unique_3 = random.sample(list(set(dps)), 3)
+        if not unique_1 or not unique_2 or not unique_3:
+            continue
+        return unique_1, unique_2, unique_3
 
 def select_elements(list_1, list_2, list_3, list_4):
     while True:
@@ -408,45 +411,45 @@ async def on_reaction_add(reaction, user):
                     else:
                         await message.channel.send(f"Cannot form a team due to people unsigning.")
                         message_users[message_id]['sent'] = False
-        if '<@&1087697492038131762>' in message.content:
-            if user.bot:
-                if message_id not in message_users:
-                        message_users[message_id] = {
-                        'lock': asyncio.Lock(),
-                        'tanks': [],
-                        'healers': [],
-                        'dps': [],
-                        'sent': False,
-                        'time': datetime.datetime.utcnow()
-                        }
-                return
+    if '<@&724869170734432258>' in message.content:
+        if user.bot:
+            if message_id not in message_users:
+                message_users[message_id] = {
+                    'lock': asyncio.Lock(),
+                    'tanks': [],
+                    'healers': [],
+                    'dps': [],
+                    'sent': False,
+                    'time': datetime.datetime.utcnow()
+                }
+            return
         
-            if message_id in message_users:
-            
-                role = None
-                if str(reaction.emoji) == '<:Tank_icon:1103828509996089499>':
-                    role = 'tanks'
-                elif str(reaction.emoji) == '<:Healer_icon:1103828598722416690>':
-                    role = 'healers'
-                elif str(reaction.emoji) == '<:Dps_icon:1103828601075413145>':
-                    role = 'dps'
-                
-                if role:
-                    if user not in message_users[message_id][role]:
-                        message_users[message_id][role].append(user)
-                
-                async with message_users[message_id]['lock']:
-                    if len(message_users[message_id]['tanks']) >= 1 and len(message_users[message_id]['healers']) >= 1 and len(message_users[message_id]['dps']) >=3 and len(set(message_users[message_id]['tanks'] + message_users[message_id]['healers'])) >=2 and len(set(message_users[message_id]['tanks'] + message_users[message_id]['healers'] + message_users[message_id]['dps'])) >= 5:
-                        if message_users[message_id]['sent'] == False:
-                            await message.channel.send(f"Team can now be made")
-                            message_users[message_id]['sent'] = True
-                        
+        if message_id in message_users:
+
+            role = None
+            if str(reaction.emoji) == '<:Tank_icon:1103828509996089499>':
+                role = 'tanks'
+            elif str(reaction.emoji) == '<:Healer_icon:1103828598722416690>':
+                role = 'healers'
+            elif str(reaction.emoji) == '<:Dps_icon:1103828601075413145>':
+                role = 'dps'
+
+            if role:
+                if user not in message_users[message_id][role]:
+                    message_users[message_id][role].append(user)
+
+            async with message_users[message_id]['lock']:
+                if len(message_users[message_id]['tanks']) >= 1 and len(message_users[message_id]['healers']) >= 1 and len(message_users[message_id]['dps']) >= 3 and len(set(message_users[message_id]['tanks'] + message_users[message_id]['healers'])) >= 2 and len(set(message_users[message_id]['tanks'] + message_users[message_id]['healers'] + message_users[message_id]['dps'])) >= 5:
+                    if message_users[message_id]['sent'] == False:
+                        await message.channel.send(f"Team can now be made")
+                        message_users[message_id]['sent'] = True
+
                         await asyncio.sleep(5)
                         if len(message_users[message_id]['tanks']) >= 1 and len(message_users[message_id]['healers']) >= 1 and len(message_users[message_id]['dps']) >=3 and len(set(message_users[message_id]['tanks'] + message_users[message_id]['healers'])) >=2 and len(set(message_users[message_id]['tanks'] + message_users[message_id]['healers'] + message_users[message_id]['dps'])) >= 5:
 
-                            tank_weekly, healer_weekly, dps_weekly = (weekly_gaming(message_users[message_id]['tanks'], message_users[message_id]['healers'], message_users[message_id]['dps']))
+                            tank_weekly, healer_weekly, dps_weekly = await weekly_gaming(message_users[message_id]['tanks'], message_users[message_id]['healers'], message_users[message_id]['dps'])
                                 
-                            await message.channel.send(f"Keystone team:\n<:Tank:1095150384164634624> {tank_weekly.mention}\n<:Healer:1095151227379130418> {healer_weekly.mention}\n<:Dps_icon:1103828601075413145> {dps_weekly[0].mention}\n<:Dps_icon:1103828601075413145> {dps_weekly[1].mention}\n<:Dps_icon:1103828601075413145> {dps_weekly[2].mention}")
+                            await message.channel.send(f"Keystone team:\n<:Tank_icon:1103828509996089499> {tank_weekly.mention}\n<:Healer_icon:1103828598722416690> {healer_weekly.mention}\n<:Dps_icon:1103828601075413145> {dps_weekly[0].mention}\n<:Dps_icon:1103828601075413145> {dps_weekly[1].mention}\n<:Dps_icon:1103828601075413145> {dps_weekly[2].mention}")
 
                             tank_weekly = []
                             healer_weekly = []
