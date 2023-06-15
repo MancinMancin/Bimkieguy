@@ -53,7 +53,7 @@ async def reset_keystones():
     keystones.clear()
     with open('keys.json', 'w') as f:
         json.dump(keystones, f)
-    await channel.send("Key list reset.")
+    await channel.send("Key list reset")
 
 async def scheduler():
     schedule.every().wednesday.at("06:00").do(asyncio.create_task, reset_keystones)
@@ -411,7 +411,7 @@ async def on_reaction_add(reaction, user):
                     else:
                         await message.channel.send(f"Cannot form a team due to people unsigning.")
                         message_users[message_id]['sent'] = False
-    if '<@&724869170734432258>' in message.content:
+    if '<@&1087697492038131762>' in message.content:
         if user.bot:
             if message_id not in message_users:
                 message_users[message_id] = {
