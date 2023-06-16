@@ -53,7 +53,7 @@ async def reset_keystones():
     keystones.clear()
     with open('keys.json', 'w') as f:
         json.dump(keystones, f)
-    await channel.send("Key list reset")
+    await channel.send("Key list reset.")
 
 async def scheduler():
     schedule.every().wednesday.at("06:00").do(asyncio.create_task, reset_keystones)
