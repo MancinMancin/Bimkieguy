@@ -5,11 +5,16 @@ import asyncio
 import json
 import re
 import requests
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.triggers.cron import CronTrigger
+import aiocron
 import time
 import schedule
 import datetime
 import os
+import logging
 from dungeon_guides import dungeon_guides
+from discord.ext import tasks
 
 from config import TOKEN
 
@@ -40,7 +45,9 @@ async def help(interaction: discord.Interaction):
         "Poll": ("🔸/poll <about>, <option_1>, <option_2>,...", False),
         "Dungeon ilvls": ("🔸/ilvl\n"
             "🔸/ilvl <level>\n", False),
-        "Dungeon Guides": ("🔸/guide <dungeon>", False)
+        "Dungeon Guides": ("🔸/guide <dungeon>", False),
+        "Affixes": ("🔸/affix\n"
+                    "🔸/affix <week in advance>", False)
     }
     foot = "Mancin Mancin"
     foot_icon = "https://media.discordapp.net/attachments/1087696437426528269/1089293104089137282/OIG.awIefY1fsoRX0.jpg?width=676&height=676"
@@ -48,18 +55,14 @@ async def help(interaction: discord.Interaction):
     embed = await make_embed(name, url, fields, foot, foot_icon, desc, color)
     await interaction.response.send_message(embed=embed)
 
-async def reset_keystones():
-    channel = bot.get_channel(1077890228854988860)
-    keystones.clear()
-    with open('keys.json', 'w') as f:
-        json.dump(keystones, f)
-    await channel.send("Key list reset.")
-
-async def scheduler():
-    schedule.every().wednesday.at("06:00").do(asyncio.create_task, reset_keystones)
-    while True:
-        schedule.run_pending()
-        await asyncio.sleep(60)
+@tasks.loop(minutes=60.0)
+async def task():
+    if datetime.datetime.now().weekday() == 2 and datetime.datetime.now().hour == 6:
+        channel = bot.get_channel(1077890228854988860)
+        keystones.clear()
+        with open('keys.json', 'w') as f:
+            json.dump(keystones, f)
+        await channel.send("Key list reset")
 
 cache = {}
 
@@ -83,22 +86,23 @@ async def check():
 
 async def start_check():
     await check()
+
 @bot.event
 async def on_ready():
     print(f'Logged in as {bot.user}')
     bot.loop.create_task(start_check())
     bot.loop.create_task(start_cache_reset())
     await bot.tree.sync()
-    bot.loop.create_task(scheduler())
+    task.start()
 
 @bot.event
 async def on_message(message):
     if message.author.bot:
         return
     if '<@&989535345370628126>' in message.content and message.channel.id == 736245738295656468:
-        await message.add_reaction('<:Tank:1095150384164634624>') 
-        await message.add_reaction('<:Healer:1095151227379130418>') 
-        await message.add_reaction('<:DPS:1095151144864579725>')
+        await message.add_reaction('<:Tank_icon:1103828509996089499>') 
+        await message.add_reaction('<:Healer_icon:1103828598722416690>') 
+        await message.add_reaction('<:Dps_icon:1103828601075413145>')
         await message.add_reaction('<:Keystone:1095145259903750265>')
         await message.add_reaction('<:Muslim_Uncle_Pepe:1098289343627526266>')
     if '<@&1087697492038131762>' in message.content:
@@ -306,11 +310,11 @@ async def on_reaction_remove(reaction, user):
         if message_id in message_users:
 
             role = None
-            if str(reaction.emoji) == '<:Tank:1095150384164634624>':
+            if str(reaction.emoji) == '<:Tank_icon:1103828509996089499>':
                 role = 'tanks'
-            elif str(reaction.emoji) == '<:Healer:1095151227379130418>':
+            elif str(reaction.emoji) == '<:Healer_icon:1103828598722416690>':
                 role = 'healers'
-            elif str(reaction.emoji) == '<:DPS:1095151144864579725>':
+            elif str(reaction.emoji) == '<:Dps_icon:1103828601075413145>':
                 role = 'dps'
             elif str(reaction.emoji) == '<:Keystone:1095145259903750265>':
                 role = 'keystone'
@@ -371,11 +375,11 @@ async def on_reaction_add(reaction, user):
         if message_id in message_users:
         
             role = None
-            if str(reaction.emoji) == '<:Tank:1095150384164634624>':
+            if str(reaction.emoji) == '<:Tank_icon:1103828509996089499>':
                 role = 'tanks'
-            elif str(reaction.emoji) == '<:Healer:1095151227379130418>':
+            elif str(reaction.emoji) == '<:Healer_icon:1103828598722416690>':
                 role = 'healers'
-            elif str(reaction.emoji) == '<:DPS:1095151144864579725>':
+            elif str(reaction.emoji) == '<:Dps_icon:1103828601075413145>':
                 role = 'dps'
             elif str(reaction.emoji) == '<:Keystone:1095145259903750265>':
                 role = 'keystone'
@@ -400,7 +404,7 @@ async def on_reaction_add(reaction, user):
 
                         tank_users, healer_users, dps_users, keystone_users = (select_elements(message_users[message_id]['tanks'], message_users[message_id]['healers'], message_users[message_id]['dps'], message_users[message_id]['keystone']))
                             
-                        await message.channel.send(f"Keystone team:\n<:Tank:1095150384164634624> {tank_users.mention}\n<:Healer:1095151227379130418> {healer_users.mention}\n<:DPS:1095151144864579725> {dps_users[0].mention}\n<:DPS:1095151144864579725> {dps_users[1].mention}\n<:Keystone:1095145259903750265> {keystone_users.mention}\n```{tank_users.mention}\n{healer_users.mention}\n{dps_users[0].mention}\n{dps_users[1].mention}```")
+                        await message.channel.send(f"Keystone team:\n<:Tank_icon:1103828509996089499> {tank_users.mention}\n<:Healer_icon:1103828598722416690> {healer_users.mention}\n<:Dps_icon:1103828601075413145> {dps_users[0].mention}\n<:Dps_icon:1103828601075413145> {dps_users[1].mention}\n<:Keystone:1095145259903750265> {keystone_users.mention}\n```{tank_users.mention}\n{healer_users.mention}\n{dps_users[0].mention}\n{dps_users[1].mention}```")
 
                         tank_users = []
                         healer_users = []
@@ -511,16 +515,22 @@ async def on_reaction_add(reaction, user):
 
 @bot.event
 async def kielce(message):
-    if message.guild.id != 521281100069470208:
-        return
-    if "kielce" in message.content.lower():
-        await message.channel.send(f'Czy to jest boss?')
-    if "jestem" in message.content.lower():
-        await message.channel.send(f'Jest Dawer?')
-    if " zrob " in message.content.lower() or " zrób " in message.content.lower():
-        await message.channel.send(f'Dziunia nie jestes mojim szefem')
-    if "impreza" in message.content.lower():
-        await message.channel.send(f'To jest moja w top 3 ubulio nych impez impeza')
+    if message.guild.id == 521281100069470208:
+        if "kielce" in message.content.lower():
+            await message.channel.send(f'Czy to jest boss?')
+        if "jestem" in message.content.lower():
+            await message.channel.send(f'Jest Dawer?')
+        if " zrob " in message.content.lower() or " zrób " in message.content.lower():
+            await message.channel.send(f'Dziunia nie jestes mojim szefem')
+        if "impreza" in message.content.lower():
+            await message.channel.send(f'To jest moja w top 3 ubulio nych impez impeza')
+    if message.guild.id == 724867669257617518: 
+        if "ferb" in message.content.lower():
+            await message.channel.send('Już wiem co będziemy dzisiaj robić')
+        if "zrob " in message.content.lower() or "zrób " in message.content.lower():
+            await message.channel.send(f'Dziunia nie jestes mojim szefem')
+        if "impreza" in message.content.lower():
+            await message.channel.send(f'To jest moja w top 3 ubulio nych impez impeza')
 
 
 @bot.event
@@ -537,7 +547,7 @@ async def on_keystone_message(message):
             dungeon_level = match.group(3)
             server_id = str(message.guild.id)
             keystones.setdefault(server_id, {})
-
+            # if dungeon_name not in ["Atal'dazar", "Black Rook Hold", "DOTI: Galakrond's Fall", "DOTI: Murozond's Rise", "Darkheart Thicket", "Everbloom", "Throne of the Tides", "Waycrest Manor"]:
             if dungeon_name not in ['Brackenhide Hollow', 'Halls of Infusion', 'Uldaman: Legacy of Tyr', "Neltharus", "Freehold", "The Underrot", "Neltharion's Lair", "The Vortex Pinnacle"]:
                 unrecognized_dungeons = True
                 continue
@@ -567,9 +577,18 @@ async def on_keystone_message(message):
 @bot.command()
 async def keys(ctx, *, arg=None):
     server_id = str(ctx.guild.id)
-
     matching_keys = []
     message_to_send = []
+    # abbreviations = {
+# 'ad': "Atal'dazar",
+# 'brh': 'Black Rook Hold',
+# 'fall': 'DOTI: Galakrond's Fall',
+# 'rise': 'DOTI: Murozond's Rise',
+# 'dht': 'Darkheart Thicket',
+# 'eb': 'The Everbloom',
+# 'tott': "Throne of the Tides",
+# 'wm': 'Waycrest Manor',
+# }
     abbreviations = {
 'uld': 'Uldaman: Legacy of Tyr',
 'bh': 'Brackenhide Hollow',
@@ -674,6 +693,7 @@ async def keys(ctx, *, arg=None):
 
 @bot.command()
 async def rio(ctx, arg1=None, arg2=None, arg3=None):
+    # all_dungeons = ["Atal'dazar", "Black Rook Hold", "DOTI: Galakrond's Fall", "DOTI: Murozond's Rise", "Darkheart Thicket", "The Everbloom", "Throne of the Tides", "Waycrest Manor"]
     all_dungeons = ["The Vortex Pinnacle", "Neltharion's Lair", "The Underrot", "Freehold", "Neltharus", "Uldaman: Legacy of Tyr", "Halls of Infusion", "Brackenhide Hollow"]
     message_to_send = []
     default_realm = "burninglegion"
@@ -860,42 +880,42 @@ async def rio(ctx, arg1=None, arg2=None, arg3=None):
 async def ilvl(ctx, arg=None):
     message_to_send = []
     keystones_ilvl = {
-        "2": (402, 415),
-        "3": (405, 418),
-        "4": (405, 421),
-        "5": (408, 421),
-        "6": (408, 424),
-        "7": (411, 424),
-        "8": (411, 428),
-        "9": (415, 428),
-        "10": (415, 431),
-        "11": (418, 431),
-        "12": (418, 434),
-        "13": (421, 434),
-        "14": (421, 437),
-        "15": (424, 437),
-        "16": (424, 441),
-        "17": (428, 441),
-        "18": (428, 444),
-        "19": (431, 444),
-        "20": (431, 447)
+        "2": (441, "Veteran 1/8", 454, "Champion 1/8"),
+        "3": (444, "Veteran 2/8", 457, "Champion 2/8"),
+        "4": (444, "Veteran 2/8", 460, "Champion 3/8"),
+        "5": (447, "Veteran 3/8", 460, "Champion 3/8"),
+        "6": (447, "Veteran 3/8", 463, "Champion 4/8"),
+        "7": (450, "Veteran 4/8", 463, "Champion 4/8"),
+        "8": (450, "Veteran 4/8", 467, "Hero 1/6"),
+        "9": (454, "Champion 1/8", 467, "Hero 1/6"),
+        "10": (454, "Champion 1/8", 470, "Hero 2/6"),
+        "11": (457, "Champion 2/8", 470, "Hero 2/6"),
+        "12": (457, "Champion 2/8", 473, "Hero 3/6"),
+        "13": (460, "Champion 3/8", 473, "Hero 3/6"),
+        "14": (460, "Champion 3/8", 473, "Hero 3/6"),
+        "15": (463, "Champion 4/8", 476, "Hero 4/6"),
+        "16": (463, "Champion 4/8", 476, "Hero 4/6"),
+        "17": (467, "Hero 1/6", 476, "Hero 4/6"),
+        "18": (467, "Hero 1/6", 480, "Myth 1/4"),
+        "19": (470, "Hero 2/6", 480, "Myth 1/4"),
+        "20": (470, "Hero 2/6", 483, "Myth 2/4")
     }
 
     if arg == None:
         for k in keystones_ilvl:
-            end = keystones_ilvl[k][0]
-            gv = keystones_ilvl[k][1]
-            message_to_send.append(f"**{k}**: {end}, {gv}")
+            end = f"{keystones_ilvl[k][0]} {keystones_ilvl[k][1]}"
+            gv = f"{keystones_ilvl[k][2]} {keystones_ilvl[k][3]}"
+            message_to_send.append(f"**{k}**: {end} --- {gv}")
         message_to_send = "\n".join(message_to_send)
         await ctx.send(message_to_send)
         return
 
     if int(arg) > 20:
-        end_of_dung_ilvl = keystones_ilvl["20"][0]
-        gv_ilvl = keystones_ilvl["20"][1]
+        end_of_dung_ilvl = f"{keystones_ilvl['20'][0]} {keystones_ilvl['20'][1]}"
+        gv_ilvl = f"{keystones_ilvl['20'][2]} {keystones_ilvl['20'][3]}"
     elif arg in keystones_ilvl:
-        end_of_dung_ilvl = keystones_ilvl[arg][0]
-        gv_ilvl = keystones_ilvl[arg][1]
+        end_of_dung_ilvl = f"{keystones_ilvl[arg][0]} {keystones_ilvl[arg][1]}"
+        gv_ilvl = f"{keystones_ilvl[arg][2]} {keystones_ilvl[arg][3]}"
     else:
         await ctx.send("Inappropriate dungeon level")
         return
@@ -948,5 +968,201 @@ async def poll(ctx, *, arg):
     for i in range(len(arguments)):
         if i < len(emojis):
             await poll_message.add_reaction(emojis[i])
+
+@bot.command()
+async def pimpek(ctx):
+    if ctx.guild.id == 724867669257617518:
+        await ctx.send("<@363017197926219777>")
+
+@bot.command()
+async def pimpin(ctx):
+    if ctx.guild.id == 724867669257617518:
+        await ctx.send("<@1032790497447657543>")
+
+@bot.command()
+async def boop(ctx, target=None):
+    if ctx.guild.id == 724867669257617518:
+        if ctx.author.id == 363017197926219777:
+            if target is None:
+                await ctx.send("Qujin boops Mooniedwagon's nose")
+            elif target[-1] == 's' or target[-1] == "ś":
+                await ctx.send(f"Qujin boops {target}' nose")
+            else:
+                await ctx.send(f"Qujin boops {target}'s nose")
+        elif ctx.author.id == 1032790497447657543:
+            if target is None:
+                await ctx.send("Mooniedwagon boops Qujin's nose")
+            elif target[-1] == 's' or target[-1] == "ś":
+                await ctx.send(f"Mooniedwagon boops {target}' nose")
+            else:
+                await ctx.send(f"Mooniedwagon boops {target}'s nose")
+        elif target is None:
+            await ctx.send(f"{ctx.message.author} boops his nose")
+        elif target[-1] == 's' or target[-1] == "ś":
+            await ctx.send(f"{ctx.message.author} boops {target}' nose")
+        else:
+            await ctx.send(f"{ctx.message.author} boops {target}'s nose")
+
+@bot.command()
+async def ferb(ctx):
+    if ctx.guild.id == 724867669257617518:
+        if ctx.channel.id == 1097460207312961606 or ctx.channel.id == 1138943112539017236 or ctx.channel.id == 1132957235857854534:
+            channel = bot.get_channel(int(1132957235857854534))
+            thread = random.choice(channel.threads)
+            await ctx.send(f"{thread.mention}")
+
+@bot.command()
+async def pick(ctx, *args):
+    if len(args) == 0:
+        await ctx.send("Dej jakieś rzeczy do losowania byq")
+        return
+    item = random.choice(args)
+    await ctx.send(f"{item}")
+
+@bot.command()
+async def lama(ctx):
+    if ctx.guild.id == 724867669257617518:
+        url = "https://i.imgur.com/kc23dC1.png"
+        await ctx.send(url)
+
+@bot.command()
+async def krumfka(ctx):
+    if ctx.guild.id == 724867669257617518:
+        url = "https://i.imgur.com/XOky09j.gifv"
+        await ctx.send(url)
+
+@bot.command()
+async def sepica(ctx):
+    if ctx.guild.id == 724867669257617518:
+        url = "https://i.imgur.com/7UIP6vQ.png"
+        await ctx.send(url)
+
+@bot.command()
+async def plomykowka(ctx):
+    if ctx.guild.id == 724867669257617518:
+        url = "https://i.imgur.com/pjexzEh.png"
+        await ctx.send(url)
+
+@bot.command()
+async def blush(ctx):
+    if ctx.guild.id == 724867669257617518:
+        await ctx.send("<:evokerblush:1139320065620185179>")
+
+@bot.command()
+async def lisek(ctx):
+    if ctx.guild.id == 724867669257617518:
+        url = "https://i.imgur.com/Z3DPuoh.png"
+        await ctx.send(url)
+
+@bot.command()
+async def hug(ctx):
+    if ctx.guild.id == 724867669257617518:
+        if ctx.channel.id == 1097460207312961606 or ctx.channel.id == 1138943112539017236 or ctx.channel.id == 1132957235857854534:
+            url = "https://i.imgur.com/fIdplkT.jpg"
+            await ctx.send(url)
+
+@bot.command()
+async def love(ctx):
+    if ctx.guild.id == 724867669257617518:
+        if ctx.channel.id == 1097460207312961606 or ctx.channel.id == 1138943112539017236 or ctx.channel.id == 1132957235857854534:
+            await ctx.send("Jeg elsker Deg")
+
+@bot.command()
+async def bite(ctx):
+    if ctx.guild.id == 724867669257617518:
+        if ctx.channel.id == 1097460207312961606 or ctx.channel.id == 1138943112539017236 or ctx.channel.id == 1132957235857854534:
+            await ctx.send("Quji bites Morkter with his sharp teeth")
+
+@bot.command()
+async def madge(ctx):
+    if ctx.guild.id == 724867669257617518:
+        url = "https://i.imgur.com/SqXaryv.png"
+        await ctx.send(url)
+
+@bot.command()
+async def miss(ctx):
+    if ctx.guild.id == 724867669257617518:
+        if ctx.channel.id == 1097460207312961606 or ctx.channel.id == 1138943112539017236 or ctx.channel.id == 1132957235857854534:
+            await ctx.send("Długa jest noc...")
+
+@bot.command()
+async def kiss(ctx):
+    if ctx.guild.id == 724867669257617518:
+        url = "https://i.imgur.com/BmOsHy6.png"
+        await ctx.send(url)
+
+target_date = datetime.datetime(2023, 12, 31)
+
+@bot.command()
+async def countdown(ctx):
+    if ctx.guild.id == 724867669257617518:
+        date = datetime.datetime.now()
+        time_difference = target_date - date
+        days_remaining = time_difference.days
+        if ctx.author.id == 363017197926219777:
+            if days_remaining == 1:
+                await ctx.send(f'**{days_remaining}** DZIEŃ DO ZOBACZENIA PIMPIN ❤️')
+            else:
+                await ctx.send(f'**{days_remaining}** DNI DO ZOBACZENIA PIMPIN ❤️')
+        if ctx.author.id == 1032790497447657543:
+            if days_remaining == 1:
+                await ctx.send(f'**{days_remaining}** DZIEŃ DO ZOBACZENIA PIMPEK 🧡')
+            else:
+                await ctx.send(f'**{days_remaining}** DNI DO ZOBACZENIA PIMPEK 🧡')
+
+@bot.command()
+async def goodnight(ctx):
+    if ctx.guild.id == 724867669257617518:
+        if ctx.channel.id == 1097460207312961606 or ctx.channel.id == 1138943112539017236 or ctx.channel.id == 1132957235857854534:
+            await ctx.send("Where /goodnight <:madge:1139642264826695730>")
+
+affix_rotation = {
+    1: ("Tyrannical", "Storming", "Raging"),
+    2: ("Fortified", "Entangling", "Bolstering"),
+    3: ("Tyrannical", "Incorporeal", "Spiteful"),
+    4: ("Fortified", "Afflicted", "Raging"),
+    5: ("Tyrannical", "Volcanic", "Sanguine"),
+    6: ("Fortified", "Storming", "Bursting"),
+    7: ("Tyrannical", "Afflicted", "Bolstering"),
+    8: ("Fortified", "Incorporeal", "Sanguine"),
+    9: ("Tyrannical", "Entangling", "Bursting"),
+    10: ("Fortified", "Volcanic", "Spiteful")
+}
+
+start_date = datetime.date(2023, 9, 27)
+
+@bot.command()
+async def affix(ctx, next_week: int = 0):
+    current_date = datetime.date.today()
+    weeks_passed = (current_date - start_date).days // 7
+    if weeks_passed < 0:
+        weeks_passed = 0
+    current_week = (weeks_passed % len(affix_rotation)) + 1
+    target_week = current_week + next_week
+    start_of_week = start_date + datetime.timedelta(weeks=target_week - 1)
+    end_of_week = start_of_week + datetime.timedelta(days=6)
+    affixes = affix_rotation[target_week]
+    await ctx.send(f"**({start_of_week.strftime('%d.%m')} - {end_of_week.strftime('%d.%m')})** Affixes:\n\n"
+                   f"**+2:** {affixes[0]}\n"
+                   f"**+7:** {affixes[1]}\n"
+                   f"**+14:** {affixes[2]}")
+    
+@bot.command()
+async def dobradzien(ctx):
+    if ctx.guild.id == 724867669257617518:
+        if ctx.channel.id == 1097460207312961606 or ctx.channel.id == 1138943112539017236 or ctx.channel.id == 1132957235857854534:
+            await ctx.send("O KURWA RAID ZA 10 GODZIN")
+
+@bot.command()
+async def pimepek(ctx):
+    if ctx.guild.id == 724867669257617518:
+        if ctx.channel.id == 1097460207312961606 or ctx.channel.id == 1138943112539017236 or ctx.channel.id == 1132957235857854534:
+            url = "https://i.imgur.com/uc0j4Tk.png"
+            await ctx.send(url)
+
+@bot.command()
+async def essa(ctx):
+    if ctx.guild.id == 724867669257617518:
+            await ctx.send("https://samequizy.pl/wskaznik-essy-zmierz-swoj-dzisiejszy-poziom-essy/")
 
 bot.run(TOKEN)
