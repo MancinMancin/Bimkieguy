@@ -1004,12 +1004,31 @@ async def boop(ctx, target=None):
             await ctx.send(f"{ctx.message.author} boops {target}'s nose")
 
 @bot.command()
-async def ferb(ctx):
+async def ferb(ctx, arg=None):
     if ctx.guild.id == 724867669257617518:
-        if ctx.channel.id == 1097460207312961606 or ctx.channel.id == 1138943112539017236 or ctx.channel.id == 1132957235857854534:
-            channel = bot.get_channel(int(1132957235857854534))
+        channel = bot.get_channel(int(1132957235857854534))
+        if arg is None:
             thread = random.choice(channel.threads)
             await ctx.send(f"{thread.mention}")
+        else:
+            arg = arg.lower()
+            for thread in channel.threads:
+                if arg == thread.name.lower():
+                    messages = []
+                    async for message in thread.history(limit=None):
+                        for line in message.content.split("\n"):
+                            if line.startswith("- ~~") or line.startswith("* ~~") and line.endswith("~~"):
+                                continue
+                            elif line.startswith("-"):
+                                messages.append(line)
+                    if messages:
+                        random_message = random.choice(messages)
+                        await ctx.send(random_message)
+                        break
+                    else:
+                        await ctx.send("W tym wątku nie ma takich rzeczy")
+            else:
+                await ctx.send("Tyle, że taki wątek nie istnieje")
 
 @bot.command()
 async def pick(ctx, *args):
