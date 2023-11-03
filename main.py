@@ -5,14 +5,7 @@ import asyncio
 import json
 import re
 import requests
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from apscheduler.triggers.cron import CronTrigger
-import aiocron
-import time
-import schedule
 import datetime
-import os
-import logging
 from dungeon_guides import dungeon_guides
 from discord.ext import tasks
 
@@ -24,7 +17,7 @@ bot.remove_command("help")
 with open('keys.json', 'r') as f:
     keystones = json.load(f)
 
-@bot.tree.command(description="Shows help")
+@bot.tree.command(description="Shows help") # Help Command
 async def help(interaction: discord.Interaction):
     name = "Bimkie Guy commands"
     url = "https://i.imgur.com/Ctg5Poz.jpg"
@@ -55,7 +48,7 @@ async def help(interaction: discord.Interaction):
     embed = await make_embed(name, url, fields, foot, foot_icon, desc, color)
     await interaction.response.send_message(embed=embed)
 
-@tasks.loop(minutes=60.0)
+@tasks.loop(minutes=60.0) # Solo Reset keys.json
 async def task():
     if datetime.datetime.now().weekday() == 2 and datetime.datetime.now().hour == 6:
         channel = bot.get_channel(1077890228854988860)
@@ -99,13 +92,13 @@ async def on_ready():
 async def on_message(message):
     if message.author.bot:
         return
-    if '<@&989535345370628126>' in message.content and message.channel.id == 736245738295656468:
+    if '<@&989535345370628126>' in message.content and message.channel.id == 736245738295656468: # @bułkarze
         await message.add_reaction('<:Tank_icon:1103828509996089499>') 
         await message.add_reaction('<:Healer_icon:1103828598722416690>') 
         await message.add_reaction('<:Dps_icon:1103828601075413145>')
         await message.add_reaction('<:Keystone:1095145259903750265>')
         await message.add_reaction('<:Muslim_Uncle_Pepe:1098289343627526266>')
-    if '<@&1087697492038131762>' in message.content:
+    if '<@&1087697492038131762>' in message.content: # @weekly
         await message.add_reaction('<:Tank_icon:1103828509996089499>')
         await message.add_reaction('<:Healer_icon:1103828598722416690>')
         await message.add_reaction('<:Dps_icon:1103828601075413145>')
@@ -168,7 +161,7 @@ async def edit_embed(embed, message_id):
         new_embed.add_field(name=field.name, value=field.value, inline=field.inline)
     return new_embed
       
-async def weekly_gaming(tanks, healers, dps):
+async def weekly_gaming(tanks, healers, dps): # @weekly
     while True:
         unique_1, unique_2, unique_3 = None, None, None
         if len(tanks) >= 1 and unique_1 is None:
@@ -184,7 +177,7 @@ async def weekly_gaming(tanks, healers, dps):
             continue
         return unique_1, unique_2, unique_3
 
-def select_elements(list_1, list_2, list_3, list_4):
+def select_elements(list_1, list_2, list_3, list_4): # @bułkarze
     while True:
         lis_1, lis_2, lis_3, lis_4 = list_1, list_2, list_3, list_4
         unique_1, unique_2, unique_3, unique_4 = None, None, None, None
@@ -237,7 +230,7 @@ def select_elements(list_1, list_2, list_3, list_4):
             continue
         return unique_1, unique_2, unique_3, unique_4
 
-@bot.command()
+@bot.command() # Zapisy
 async def signups(ctx, *args):
     if len(args) < 2:
         await ctx.send("Wrong format, try:\n"
@@ -292,7 +285,7 @@ async def on_reaction_remove(reaction, user):
     
     message_id = reaction.message.id
     message = reaction.message
-    if '<@&1087697492038131762>' in message.content:
+    if '<@&1087697492038131762>' in message.content: # @weekly
         if message_id in message_users:
 
             role = None
@@ -306,7 +299,7 @@ async def on_reaction_remove(reaction, user):
             if role:
                 if user in message_users[message_id][role]:
                     message_users[message_id][role].remove(user)
-    if '<@&989535345370628126>' in message.content:
+    if '<@&989535345370628126>' in message.content: # @bułkarze
         if message_id in message_users:
 
             role = None
@@ -520,10 +513,12 @@ async def kielce(message):
             await message.channel.send(f'Czy to jest boss?')
         if "jestem" in message.content.lower():
             await message.channel.send(f'Jest Dawer?')
-        if " zrob " in message.content.lower() or " zrób " in message.content.lower():
+        if "zrob " in message.content.lower() or " zrób " in message.content.lower():
             await message.channel.send(f'Dziunia nie jestes mojim szefem')
         if "impreza" in message.content.lower():
             await message.channel.send(f'To jest moja w top 3 ubulio nych impez impeza')
+        if "ferb" in message.content.lower():
+            await message.channel.send('Już wiem co będziemy dzisiaj robić')
     if message.guild.id == 724867669257617518: 
         if "ferb" in message.content.lower():
             await message.channel.send('Już wiem co będziemy dzisiaj robić')
@@ -1004,12 +999,31 @@ async def boop(ctx, target=None):
             await ctx.send(f"{ctx.message.author} boops {target}'s nose")
 
 @bot.command()
-async def ferb(ctx):
+async def ferb(ctx, arg=None):
     if ctx.guild.id == 724867669257617518:
-        if ctx.channel.id == 1097460207312961606 or ctx.channel.id == 1138943112539017236 or ctx.channel.id == 1132957235857854534:
-            channel = bot.get_channel(int(1132957235857854534))
+        channel = bot.get_channel(int(1132957235857854534))
+        if arg is None:
             thread = random.choice(channel.threads)
             await ctx.send(f"{thread.mention}")
+        else:
+            arg = arg.lower()
+            for thread in channel.threads:
+                if arg == thread.name.lower():
+                    messages = []
+                    async for message in thread.history(limit=None):
+                        for line in message.content.split("\n"):
+                            if line.startswith("- ~~") or line.startswith("* ~~") and line.endswith("~~"):
+                                continue
+                            elif line.startswith("-"):
+                                messages.append(line)
+                    if messages:
+                        random_message = random.choice(messages)
+                        await ctx.send(random_message)
+                        break
+                    else:
+                        await ctx.send("W tym wątku nie ma takich rzeczy")
+            else:
+                await ctx.send("Tyle, że taki wątek nie istnieje")
 
 @bot.command()
 async def pick(ctx, *args):
@@ -1091,11 +1105,12 @@ async def kiss(ctx):
         url = "https://i.imgur.com/BmOsHy6.png"
         await ctx.send(url)
 
-target_date = datetime.datetime(2023, 12, 31)
+
 
 @bot.command()
 async def countdown(ctx):
     if ctx.guild.id == 724867669257617518:
+        target_date = datetime.datetime(2023, 12, 31)
         date = datetime.datetime.now()
         time_difference = target_date - date
         days_remaining = time_difference.days
@@ -1116,7 +1131,11 @@ async def goodnight(ctx):
         if ctx.channel.id == 1097460207312961606 or ctx.channel.id == 1138943112539017236 or ctx.channel.id == 1132957235857854534:
             await ctx.send("Where /goodnight <:madge:1139642264826695730>")
 
-affix_rotation = {
+
+
+@bot.command()
+async def affix(ctx, next_week: int = 0):
+    affix_rotation = {
     1: ("Tyrannical", "Storming", "Raging"),
     2: ("Fortified", "Entangling", "Bolstering"),
     3: ("Tyrannical", "Incorporeal", "Spiteful"),
@@ -1129,10 +1148,7 @@ affix_rotation = {
     10: ("Fortified", "Volcanic", "Spiteful")
 }
 
-start_date = datetime.date(2023, 9, 27)
-
-@bot.command()
-async def affix(ctx, next_week: int = 0):
+    start_date = datetime.date(2023, 9, 27)
     current_date = datetime.date.today()
     weeks_passed = (current_date - start_date).days // 7
     if weeks_passed < 0:
