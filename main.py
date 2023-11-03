@@ -8,7 +8,7 @@ from bot_package.signups import setup as setup_signups, check, sign_signups, uns
 from bot_package.other import setup as setup_other
 from config import TOKEN
 
-bot = commands.Bot(command_prefix='!', intents=discord.Intents.all())
+bot = commands.Bot(command_prefix='/', intents=discord.Intents.all())
 bot.remove_command("help")
 
 setup_moonie(bot)

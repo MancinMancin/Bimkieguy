@@ -9,7 +9,7 @@ with open('keys.json', 'r') as f:
 def setup(bot):
     bot.add_command(keys)
 
-@tasks.loop(minutes=1.0)
+@tasks.loop(minutes=60.0)
 async def reset_keys(bot):
     if datetime.datetime.now().weekday() == 2 and datetime.datetime.now().hour == 6:
         channel = bot.get_channel(1077890228854988860)
