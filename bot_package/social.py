@@ -11,7 +11,7 @@ async def kielce(message):
             await message.channel.send(f'Czy to jest boss?')
         if "jestem" in message.content.lower():
             await message.channel.send(f'Jest Dawer?')
-        if "zrob" in message.content.lower() or "zrob " in message.content.lower() or "zrób" in message.content.lower() or "zrób " in message.content.lower():
+        if "zrob " in message.content.lower() or "zrób " in message.content.lower():
             await message.channel.send(f'Dziunia nie jestes mojim szefem')
         if "impreza" in message.content.lower():
             await message.channel.send(f'To jest moja w top 3 ubulio nych impez impeza')
@@ -20,7 +20,7 @@ async def kielce(message):
     if message.guild.id == 724867669257617518: 
         if "ferb" in message.content.lower():
             await message.channel.send('Już wiem co będziemy dzisiaj robić')
-        if "zrob" in message.content.lower() or "zrob " in message.content.lower() or "zrób" in message.content.lower() or "zrób " in message.content.lower():
+        if "zrob " in message.content.lower() or "zrób " in message.content.lower():
             await message.channel.send(f'Dziunia nie jestes mojim szefem')
         if "impreza" in message.content.lower():
             await message.channel.send(f'To jest moja w top 3 ubulio nych impez impeza')
