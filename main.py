@@ -6,6 +6,7 @@ from bot_package.keystorage import setup as setup_keystorage, reset_keys, on_key
 from bot_package.mplus import setup as setup_mplus, reset_cache, bot_react, sign_mplus, unsign_mplus
 from bot_package.signups import setup as setup_signups, check, sign_signups, unsign_signups
 from bot_package.other import setup as setup_other
+from bot_package.wow import setup as setup_wow
 from config import TOKEN
 
 bot = commands.Bot(command_prefix='/', intents=discord.Intents.all())
@@ -17,6 +18,7 @@ setup_keystorage(bot)
 setup_mplus(bot)
 setup_signups(bot)
 setup_other(bot)
+setup_wow(bot)
 
 @bot.event
 async def on_message(message):
