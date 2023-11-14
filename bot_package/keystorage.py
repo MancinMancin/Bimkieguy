@@ -11,7 +11,7 @@ def setup(bot):
 
 @tasks.loop(minutes=60.0)
 async def reset_keys(bot):
-    if datetime.datetime.now().weekday() == 2 and datetime.datetime.now().hour == 6:
+    if datetime.datetime.now().weekday() == 2 and datetime.datetime.now().hour == 5:
         channel = bot.get_channel(1077890228854988860)
         keystones.clear()
         with open('keys.json', 'w') as f:
@@ -31,8 +31,7 @@ async def on_keystone_message(message):
             dungeon_level = match.group(3)
             server_id = str(message.guild.id)
             keystones.setdefault(server_id, {})
-            # if dungeon_name not in ["Atal'dazar", "Black Rook Hold", "DOTI: Galakrond's Fall", "DOTI: Murozond's Rise", "Darkheart Thicket", "Everbloom", "Throne of the Tides", "Waycrest Manor"]:
-            if dungeon_name not in ['Brackenhide Hollow', 'Halls of Infusion', 'Uldaman: Legacy of Tyr', "Neltharus", "Freehold", "The Underrot", "Neltharion's Lair", "The Vortex Pinnacle"]:
+            if dungeon_name not in ["Atal'dazar", "Black Rook Hold", "DOTI: Galakrond's Fall", "DOTI: Murozond's Rise", "Darkheart Thicket", "Everbloom", "Throne of the Tides", "Waycrest Manor"]:
                 unrecognized_dungeons = True
                 continue
             for _, data in keystones[server_id].items():
@@ -62,25 +61,15 @@ async def keys(ctx, *, arg=None):
     server_id = str(ctx.guild.id)
     matching_keys = []
     message_to_send = []
-    # abbreviations = {
-# 'ad': "Atal'dazar",
-# 'brh': 'Black Rook Hold',
-# 'fall': 'DOTI: Galakrond's Fall',
-# 'rise': 'DOTI: Murozond's Rise',
-# 'dht': 'Darkheart Thicket',
-# 'eb': 'The Everbloom',
-# 'tott': "Throne of the Tides",
-# 'wm': 'Waycrest Manor',
-# }
     abbreviations = {
-'uld': 'Uldaman: Legacy of Tyr',
-'bh': 'Brackenhide Hollow',
-'nelt': 'Neltharus',
-'hoi': 'Halls of Infusion',
-'ur': 'The Underrot',
-'fh': 'Freehold',
-'nl': "Neltharion's Lair",
-'vp': 'The Vortex Pinnacle',
+'ad': "Atal'dazar",
+'brh': 'Black Rook Hold',
+'fall': 'DOTI: Galakrond\'s Fall',
+'rise': 'DOTI: Murozond\'s Rise',
+'dht': 'Darkheart Thicket',
+'eb': 'The Everbloom',
+'tott': "Throne of the Tides",
+'wm': 'Waycrest Manor',
 }
     if arg is None:
         if len(keystones.get(server_id, {})) > 0:            

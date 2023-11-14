@@ -501,19 +501,19 @@ async def guide(ctx, *, arg=None):
 @commands.command()
 async def affix(ctx, next_week: int = 0):
     affix_rotation = {
-    1: ("Tyrannical", "Storming", "Raging"),
-    2: ("Fortified", "Entangling", "Bolstering"),
-    3: ("Tyrannical", "Incorporeal", "Spiteful"),
-    4: ("Fortified", "Afflicted", "Raging"),
-    5: ("Tyrannical", "Volcanic", "Sanguine"),
-    6: ("Fortified", "Storming", "Bursting"),
-    7: ("Tyrannical", "Afflicted", "Bolstering"),
-    8: ("Fortified", "Incorporeal", "Sanguine"),
-    9: ("Tyrannical", "Entangling", "Bursting"),
-    10: ("Fortified", "Volcanic", "Spiteful")
+    1: ("Fortified", "Incorporeal", "Sanguine"),
+    2: ("Tyrannical", "Entangling", "Bursting"),
+    3: ("Fortified", "Volcanic", "Spiteful"),
+    4: ("Tyrannical", "Storming", "Raging"),
+    5: ("Fortified", "Entangling", "Bolstering"),
+    6: ("Tyrannical", "Incorporeal", "Spiteful"),
+    7: ("Fortified", "Afflicted", "Raging"),
+    8: ("Tyrannical", "Volcanic", "Sanguine"),
+    9: ("Fortified", "Storming", "Bursting"),
+    10: ("Tyrannical", "Afflicted", "Bolstering")
 }
 
-    start_date = datetime.date(2023, 9, 27)
+    start_date = datetime.date(2023, 11, 15)
     current_date = datetime.date.today()
     weeks_passed = (current_date - start_date).days // 7
     if weeks_passed < 0:
