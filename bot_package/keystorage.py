@@ -9,9 +9,9 @@ with open('keys.json', 'r') as f:
 def setup(bot):
     bot.add_command(keys)
 
-@tasks.loop(minutes=60.0)
+@tasks.loop(minutes=1)
 async def reset_keys(bot):
-    if datetime.datetime.now().weekday() == 2 and datetime.datetime.now().hour == 5:
+    if datetime.datetime.now().weekday() == 2 and datetime.datetime.now().hour == 5 and datetime.datetime.now().minute == 0:
         channel = bot.get_channel(1077890228854988860)
         keystones.clear()
         with open('keys.json', 'w') as f:
