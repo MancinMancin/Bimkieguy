@@ -246,8 +246,7 @@ async def reset_cache():
 
 @commands.command()
 async def rio(ctx, arg1=None, arg2=None, arg3=None):
-    # all_dungeons = ["Atal'dazar", "Black Rook Hold", "DOTI: Galakrond's Fall", "DOTI: Murozond's Rise", "Darkheart Thicket", "The Everbloom", "Throne of the Tides", "Waycrest Manor"]
-    all_dungeons = ["The Vortex Pinnacle", "Neltharion's Lair", "The Underrot", "Freehold", "Neltharus", "Uldaman: Legacy of Tyr", "Halls of Infusion", "Brackenhide Hollow"]
+    all_dungeons = ["Atal'Dazar", "Black Rook Hold", "DOTI: Galakrond's Fall", "DOTI: Murozond's Rise", "Darkheart Thicket", "The Everbloom", "Throne of the Tides", "Waycrest Manor"]
     message_to_send = []
     default_realm = "burninglegion"
     base_score = {
