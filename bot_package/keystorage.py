@@ -31,7 +31,7 @@ async def on_keystone_message(message):
             dungeon_level = match.group(3)
             server_id = str(message.guild.id)
             keystones.setdefault(server_id, {})
-            if dungeon_name not in ["Atal'dazar", "Black Rook Hold", "DOTI: Galakrond's Fall", "DOTI: Murozond's Rise", "Darkheart Thicket", "Everbloom", "Throne of the Tides", "Waycrest Manor"]:
+            if dungeon_name not in ["Atal'Dazar", "Black Rook Hold", "Dawn of the Infinite: Galakrond's Fall", "Dawn of the Infinite: Murozond's Rise", "Darkheart Thicket", "The Everbloom", "Throne of the Tides", "Waycrest Manor"]:
                 unrecognized_dungeons = True
                 continue
             for _, data in keystones[server_id].items():
@@ -62,10 +62,10 @@ async def keys(ctx, *, arg=None):
     matching_keys = []
     message_to_send = []
     abbreviations = {
-'ad': "Atal'dazar",
+'ad': "Atal'Dazar",
 'brh': 'Black Rook Hold',
-'fall': 'DOTI: Galakrond\'s Fall',
-'rise': 'DOTI: Murozond\'s Rise',
+'fall': "Dawn of the Infinite: Galakrond's Fall",
+'rise': "Dawn of the Infinite: Murozond's Rise",
 'dht': 'Darkheart Thicket',
 'eb': 'The Everbloom',
 'tott': "Throne of the Tides",
