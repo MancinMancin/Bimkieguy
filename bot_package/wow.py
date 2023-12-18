@@ -198,7 +198,7 @@ async def defki(ctx):
         # Priest
         19236, # Desperate Prayer
         47585, # Dispersion
-        583, # Fade
+        586, # Fade
 
         # Rogue
         31224, # Cloak of Shadows
