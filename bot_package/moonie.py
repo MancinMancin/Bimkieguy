@@ -198,4 +198,6 @@ async def pimepek(ctx):
 @commands.command()
 async def essa(ctx):
     if ctx.guild.id == 724867669257617518:
-            await ctx.send("https://samequizy.pl/wskaznik-essy-zmierz-swoj-dzisiejszy-poziom-essy/")
+        user_nickname = ctx.author.nick if ctx.author.nick else ctx.author.name
+        rolled_number = random.randint(0, 100)
+        await ctx.send(f"Dzisiejszy poziom essy {user_nickname}: **{rolled_number}**")
