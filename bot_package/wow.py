@@ -4,6 +4,7 @@ def setup(bot):
     bot.add_command(wago)
     bot.add_command(avd)
     bot.add_command(defki)
+    bot.add_command(hp)
 
 @commands.command()
 async def wago(ctx):
@@ -223,3 +224,13 @@ async def defki(ctx):
         23920, # Spell Reflection
     )
     await ctx.send(f"ability.id IN {defensives}")
+
+@commands.command()
+async def hp(ctx):
+    rzeczy = (
+        
+        370511, # Refreshing Healing Potion
+        415569, # Dreamwalker's Healing Potion
+        6262, # Healthstone
+    )
+    await ctx.send(f"ability.id IN {rzeczy}")
