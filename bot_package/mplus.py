@@ -510,7 +510,7 @@ async def affix(ctx, next_week: int = 0):
     8: ("Tyrannical", "Volcanic", "Sanguine"),
     9: ("Fortified", "Storming", "Bursting"),
     10: ("Tyrannical", "Afflicted", "Bolstering")
-}
+    }
 
     start_date = datetime.date(2023, 11, 15)
     current_date = datetime.date.today()
@@ -519,10 +519,10 @@ async def affix(ctx, next_week: int = 0):
         weeks_passed = 0
     current_week = (weeks_passed % len(affix_rotation)) + 1
     target_week = current_week + next_week
-    start_of_week = start_date + datetime.timedelta(weeks=target_week - 1)
+    start_of_week = start_date + datetime.timedelta(weeks=weeks_passed + next_week)
     end_of_week = start_of_week + datetime.timedelta(days=6)
     affixes = affix_rotation[target_week]
     await ctx.send(f"**({start_of_week.strftime('%d.%m')} - {end_of_week.strftime('%d.%m')})** Affixes:\n\n"
-                   f"**+2:** {affixes[0]}\n"
-                   f"**+7:** {affixes[1]}\n"
-                   f"**+14:** {affixes[2]}")
+                    f"**+2:** {affixes[0]}\n"
+                    f"**+7:** {affixes[1]}\n"
+                    f"**+14:** {affixes[2]}")
