@@ -11,7 +11,7 @@ def setup(bot):
 
 @tasks.loop(minutes=1)
 async def reset_keys(bot):
-    if datetime.datetime.now().weekday() == 2 and datetime.datetime.now().hour == 5 and datetime.datetime.now().minute == 0:
+    if datetime.datetime.now().weekday() == 2 and datetime.datetime.now().hour == 4 and datetime.datetime.now().minute == 0:
         channel = bot.get_channel(1077890228854988860)
         keystones.clear()
         with open('keys.json', 'w') as f:
