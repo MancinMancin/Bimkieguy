@@ -5,6 +5,7 @@ import requests
 def setup(bot):
     bot.add_command(poll)
     bot.add_command(pick)
+    bot.add_command(zagadka)
 
 async def kielce(message):
     if message.guild.id == 521281100069470208:
