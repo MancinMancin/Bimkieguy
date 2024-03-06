@@ -1,5 +1,6 @@
 from discord.ext import commands
 import random
+import requests
 
 def setup(bot):
     bot.add_command(poll)
@@ -56,3 +57,14 @@ async def pick(ctx, *args):
         return
     item = random.choice(args)
     await ctx.send(f"{item}")
+
+@commands.command()
+async def zagadka(ctx):
+    api_url = "https://riddles-api.vercel.app/random"
+    response = requests.get(api_url)
+    if response.status_code == requests.codes.ok:
+        data = response.json()
+        await ctx.send(f"{data['riddle']} \n\n"
+            f"||{data['answer']}||")
+    else:
+        await ctx.send("Error:", response.status_code, response.text)
