@@ -52,6 +52,13 @@ async def boop(ctx, target=None):
                 await ctx.send(f"Mooniedwagon boops {target}' nose")
             else:
                 await ctx.send(f"Mooniedwagon boops {target}'s nose")
+        elif ctx.author.id == 1209505224222580741:
+            if target is None:
+                await ctx.send("Nisia boops Quji's nose")
+            elif target[-1] == 's' or target[-1] == "ś":
+                await ctx.send(f"Nisia boops {target}' nose")
+            else:
+                await ctx.send(f"Nisia boops {target}'s nose")
         elif target is None:
             await ctx.send(f"{ctx.message.author} boops his nose")
         elif target[-1] == 's' or target[-1] == "ś":
