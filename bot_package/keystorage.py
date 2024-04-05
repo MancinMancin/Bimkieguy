@@ -1,163 +1,135 @@
 from discord.ext import commands, tasks
-import re
-import json
 import datetime
+import json
+import re
+import discord
 
-with open('keys.json', 'r') as f:
-    keystones = json.load(f)
+class keystorage(commands.Cog):
+    def __init__(self, bot: commands.Bot):
+        self.bot = bot
+        self.keystones = {}
 
-def setup(bot):
-    bot.add_command(keys)
+        with open('keys.json', 'r') as f:
+            self.keystones = json.load(f)
 
-@tasks.loop(minutes=1)
-async def reset_keys(bot):
-    if datetime.datetime.now().weekday() == 2 and datetime.datetime.now().hour == 4 and datetime.datetime.now().minute == 0:
-        channel = bot.get_channel(1077890228854988860)
-        keystones.clear()
-        with open('keys.json', 'w') as f:
-            json.dump(keystones, f)
-        await channel.send("Key list reset")
+        self.dungeons = {
+            "ad": "Atal'Dazar",
+            "brh": "Black Rook Hold",
+            "fall": "Dawn of the Infinite: Galakrond's Fall",
+            "rise": "Dawn of the Infinite: Murozond's Rise",
+            "dht": "Darkheart Thicket",
+            "eb": "The Everbloom",
+            "tott": "Throne of the Tides",
+            "wm": "Waycrest Manor",
+        }
 
-async def on_keystone_message(message):
-    unrecognized_dungeons = False
-    if message.author.bot:
-        return
-    pattern = r'^(\w+) - \[Keystone: (.+) \((\d+)\)\]$'
-    for line in message.content.split('\n'):
-        match = re.match(pattern, line)
-        if match:
-            key_name = match.group(1)
-            dungeon_name = match.group(2)
-            dungeon_level = match.group(3)
-            server_id = str(message.guild.id)
-            keystones.setdefault(server_id, {})
-            if dungeon_name not in ["Atal'Dazar", "Black Rook Hold", "Dawn of the Infinite: Galakrond's Fall", "Dawn of the Infinite: Murozond's Rise", "Darkheart Thicket", "The Everbloom", "Throne of the Tides", "Waycrest Manor"]:
-                unrecognized_dungeons = True
-                continue
-            for _, data in keystones[server_id].items():
-                if key_name in data:
-                    data.pop(key_name)
+    @tasks.loop(minutes=1)
+    async def reset_keys(self):
+        if datetime.datetime.now().weekday() == 2 and datetime.datetime.now().hour == 4 and datetime.datetime.now().minute == 0:
+            channel = self.bot.get_channel(1077890228854988860)
+            self.keystones.clear()
+            with open('keys.json', 'w') as f:
+                json.dump(self.keystones, f)
+            await channel.send("Key list reset")
 
-            author_id = str(message.author.id)
-            keystones[server_id].setdefault(dungeon_name, {})
-            keystones[server_id][dungeon_name].setdefault(key_name, {})
-            keystones[server_id][dungeon_name][key_name][dungeon_level] = author_id
-
-            with open("keys.json", "w") as f:
-                json.dump(keystones, f)
-            
-            for line in message.content.split('\n'):
-                match = re.match(pattern, line)
-    if match:
-        if unrecognized_dungeons == True:
-            await message.channel.send(f'Dungeons provided not recognized')
+    @commands.Cog.listener()
+    async def on_message(self, message: discord.Message):
+        if message.author.bot or (message.channel.id != 1077890228854988860 and message.channel.id != 1155549608550871090):
             return
-        key_name = match.group(1)
-        if key_name in keystones[server_id][dungeon_name]:
+        unrecognized_dungeons = False
+        pattern = r'^(\w+) - \[Keystone: (.+) \((\d+)\)\]$'
+        for line in message.content.split("\n"):
+            match = re.match(pattern, line)
+            if match:
+                keyholder_name = match.group(1)
+                dungeon_name = match.group(2)
+                dungeon_level = match.group(3)
+                server_id = message.guild.id
+                self.keystones.setdefault(server_id, {})
+                if dungeon_name not in self.dungeons.values():
+                    unrecognized_dungeons = True
+                    break
+                for _, data in self.keystones[server_id].items():
+                    if keyholder_name in data:
+                        data.pop(keyholder_name)
+                author_id = message.author.id
+                self.keystones[server_id].setdefault(dungeon_name, {})
+                self.keystones[server_id][dungeon_name].setdefault(keyholder_name, {})
+                self.keystones[server_id][dungeon_name][keyholder_name][dungeon_level] = author_id
+
+                with open("keys.json", "w") as f:
+                    json.dump(self.keystones, f)
+
+        if match:
+            if unrecognized_dungeons == True:
+                await message.channel.send(f"Dungeons provided not recognized")
+                return
             await message.delete()
 
-@commands.command()
-async def keys(ctx, *, arg=None):
-    server_id = str(ctx.guild.id)
-    matching_keys = []
-    message_to_send = []
-    abbreviations = {
-'ad': "Atal'Dazar",
-'brh': 'Black Rook Hold',
-'fall': "Dawn of the Infinite: Galakrond's Fall",
-'rise': "Dawn of the Infinite: Murozond's Rise",
-'dht': 'Darkheart Thicket',
-'eb': 'The Everbloom',
-'tott': "Throne of the Tides",
-'wm': 'Waycrest Manor',
-}
-    if arg is None:
-        if len(keystones.get(server_id, {})) > 0:            
-            for key, data in keystones[server_id].items():
+    @commands.command()
+    async def keys(self, ctx: commands.Context, arg: str = None):
+        with open('keys.json', 'r') as f:
+            self.keystones = json.load(f)
+        server_id = str(ctx.guild.id)
+
+        if server_id not in self.keystones:
+            await ctx.send("There are no keys yet")
+            return
+        
+        matching_keys = []
+        if arg is None:
+            for key, data in self.keystones[server_id].items():
                 for keyholder, level in data.items():
-                    matching_keys.append(f'{keyholder} - [Keystone: {key} ({", ".join(list(level.keys()))})]')
-            if matching_keys:
-                message_to_send = '\n'.join(matching_keys)
-                await ctx.send(message_to_send)
-        else:
-            await ctx.send(f'There are no keys yet')
-    elif arg.isdigit():
-        if server_id in keystones:
-            for key, data in keystones[server_id].items():
+                    matching_keys.append(f'{keyholder} - [Keystone: {key} ({list(level.keys())[0]})]')
+        elif arg.isdigit():
+            for key, data in self.keystones[server_id].items():
                 for keyholder, level in data.items():
                     if arg in level:
-                        matching_keys.append(f'{keyholder} - [Keystone: {key} ({", ".join(list(level.keys()))})]')
-            if matching_keys:
-                message_to_send = '\n'.join(matching_keys)
-                await ctx.send(message_to_send)
-            else:
-                await ctx.send(f"There are no keys for level {arg}")
-        else:
-            await ctx.send(f"There are no keys yet")
-    elif arg.endswith("-") or arg.endswith("+"):
-        given_levels = arg[:-1]
-        loh = arg[-1]
-        if server_id in keystones:
-            for key, data in keystones[server_id].items():
+                        matching_keys.append(f'{keyholder} - [Keystone: {key} ({list(level.keys())[0]})]')
+        elif arg.endswith("-") or arg.endswith("+"):
+            given_levels = arg[:-1]
+            sign = arg[-1]
+            for key, data in self.keystones[server_id].items():
                 for keyholder, level in data.items():
-                    for c in level.keys():
-                        if loh == ("+"):
-                            if int(c) >= int(given_levels):
-                                matching_keys.append(f'{keyholder} - [Keystone: {key} ({", ".join(list(level.keys()))})]')
-                        elif loh == ("-"):
-                            if int(c) <= int(given_levels):
-                                matching_keys.append(f'{keyholder} - [Keystone: {key} ({", ".join(list(level.keys()))})]')
-            if matching_keys:
-                message_to_send = '\n'.join(matching_keys)
-                await ctx.send(message_to_send)
-            else:
-                await ctx.send(f"There are no keys for levels {arg}")
-        else:
-            await ctx.send(f"There are no keys yet")
-    elif arg.lower() == 'reset':
-        keystones.clear()
-        with open("keys.json", "w") as f:
-            json.dump(keystones, f)
-        await ctx.send("Key list reset")
-    elif arg.lower() in map(str.lower, abbreviations.keys()) or arg.lower() in map(str.lower, abbreviations.values()):
-        found_keys = {}
-        key = abbreviations.get(arg.lower()) or [v for _, v in abbreviations.items() if v.lower() == arg.lower()][0]
-        found_keys = keystones.get(server_id, {}).get(key, {})
-        if found_keys:
-            for keyholder, level in found_keys.items():
-                matching_keys.append(f'{keyholder} - [Keystone: {key} ({", ".join(list(level.keys()))})]')
-            if matching_keys:
-                message_to_send = '\n'.join(matching_keys)
-                await ctx.send(message_to_send)
-        else:
-            await ctx.send(f'There are no keys for {key}')
-    elif arg.lower() == 'abbr':
-        abbreviations_text = '\n'.join([f'"{key}" for {value}' for key, value in abbreviations.items()])
-        await ctx.send(f'{abbreviations_text}')
-    elif arg.startswith('<@') and arg.endswith('>'):
-        member = int(arg[2:-1])
-        if server_id in keystones:
-            for key, data in keystones[server_id].items():
+                    for l in level.keys():
+                        if sign == ("+") and int(l) >= int(given_levels):
+                            matching_keys.append(f'{keyholder} - [Keystone: {key} ({list(level.keys())[0]})]')
+                        elif sign == ("-") and int(l) <= int(given_levels):
+                            matching_keys.append(f'{keyholder} - [Keystone: {key} ({list(level.keys())[0]})]')
+        elif arg.lower() in self.dungeons.keys() or arg.lower in map(str.lower, self.dungeons.values()):
+            found_keys = {}
+            key = self.dungeons.get(arg.lower()) or [v for v in self.dungeons.values() if v.lower() == arg.lower()][0]
+            found_keys = self.keystones.get(server_id, {}).get(key, {})
+            if found_keys:
+                for keyholder, level in found_keys.items():
+                    matching_keys.append(f'{keyholder} - [Keystone: {key} ({list(level.keys())[0]})]')
+        elif arg.lower() == "abbr":
+            message_to_send = "\n".join([f'"{k}" for {v}' for k, v in self.dungeons.items()])
+            await ctx.send(message_to_send)
+            return
+        elif arg.startswith("<@") and arg.endswith(">"):
+            member_id = int(arg[2:-1])
+            for key, data in self.keystones[server_id].items():
                 for keyholder, level in data.items():
-                    if member == int(list(level.values())[0]):
-                        matching_keys.append(f'{keyholder} - [Keystone: {key} ({", ".join(list(level.keys()))})]')
-            if matching_keys:
-                message_to_send = '\n'.join(matching_keys)
-                await ctx.send(message_to_send)
-            else:
-                await ctx.send("User doesn't have any keys")
-        else:
-            await ctx.send(f"User doesn't have any keys")
-    elif any(arg.lower() in str(val).lower() for _, val in keystones.get(server_id, {}).items()):
-        if server_id in keystones:
-            for key, data in keystones[server_id].items():
+                    if member_id == int(list(level.values())[0]):
+                        matching_keys.append(f'{keyholder} - [Keystone: {key} ({list(level.keys())[0]})]')
+        elif any(arg.lower() in str(val).lower() for _, val in self.keystones.get(server_id, {}).items()):
+            for key, data in self.keystones[server_id].items():
                 for keyholder, level in data.items():
                     if keyholder.lower() == arg.lower():
-                        matching_keys.append(f'{keyholder} - [Keystone: {key} ({", ".join(list(level.keys()))})]')
-            if matching_keys:
-                message_to_send = '\n'.join(matching_keys)
-                await ctx.send(message_to_send)
+                        matching_keys.append(f'{keyholder} - [Keystone: {key} ({list(level.keys())[0]})]')
+        elif arg.lower() == "reset":
+            self.keystones.clear()
+            with open("keys.json", "w") as f:
+                json.dump(self.keystones, f)
+            await ctx.send("Key list reset")
+            return
+
+        if matching_keys:
+            message_to_send = "\n".join(matching_keys)
+            await ctx.send(message_to_send)
         else:
-            await ctx.send("There are no keys yet")
-    else:
-        await ctx.send(f'Keyholder is absent in the list, or dungeon provided is invalid, check "/keys abbr"')
+            await ctx.send("There are no such keys")
+
+async def setup(bot):
+    await bot.add_cog(keystorage(bot))
