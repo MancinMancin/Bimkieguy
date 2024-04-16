@@ -22,10 +22,22 @@ class keystorage(commands.Cog):
             "tott": "Throne of the Tides",
             "wm": "Waycrest Manor",
         }
+        # self.dungeons = {
+        # "bh": "Brackenhide Hollow",
+        # "hoi": "Halls of Infusion",
+        # "nelt": "Neltharus",
+        # "uld": "Uldaman: Legacy of Tyr",
+        # "aa": "Algeth'ar Academy",
+        # "av": "The Azure Vault",
+        # "no": "The Nokhud Offensive",
+        # "rlp": "Ruby Life Pools"
+        # }
 
-    @tasks.loop(minutes=1)
+
+
+    @tasks.loop(time=datetime.time(hour=4))
     async def reset_keys(self):
-        if datetime.datetime.now().weekday() == 2 and datetime.datetime.now().hour == 4 and datetime.datetime.now().minute == 0:
+        if datetime.datetime.now().weekday() == 2:
             channel = self.bot.get_channel(1077890228854988860)
             self.keystones.clear()
             with open('keys.json', 'w') as f:
