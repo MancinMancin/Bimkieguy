@@ -234,10 +234,9 @@ class wow(commands.Cog):
 
     @commands.command()
     async def potki(self, ctx: commands.Context):
-        rzeczy = (
-            371028, # Elemental Potion of Ultimate Power
-        )
-        await ctx.send(f"ability.id IN {rzeczy}")
+        rzeczy = 371028 # Elemental Potion of Ultimate Power
+        
+        await ctx.send(f"ability.id IN ({rzeczy})")
 
 async def setup(bot):
     await bot.add_cog(wow(bot))
