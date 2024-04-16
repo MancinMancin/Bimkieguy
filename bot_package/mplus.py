@@ -222,6 +222,16 @@ class mplus(commands.Cog):
             "Throne of the Tides",
             "Waycrest Manor"
         ]
+        # all_dungeons = [
+        #     "Brackenhide Hollow",
+        #     "Halls of Infusion",
+        #     "Neltharus",
+        #     "Uldaman: Legacy of Tyr",
+        #     "Algeth'ar Academy",
+        #     "The Azure Vault",
+        #     "The Nokhud Offensive",
+        #     "Ruby Life Pools"
+        # ]
         base_score = {
             "2" : "40",
             "3" : "45",
