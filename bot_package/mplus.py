@@ -213,25 +213,15 @@ class mplus(commands.Cog):
     @commands.command()
     async def rio(self, ctx: commands.Context, char: str = None, level: str = None, fortyra: str = None):
         all_dungeons = [
-            "Atal'Dazar",
-            "Black Rook Hold",
-            "DOTI: Galakrond's Fall",
-            "DOTI: Murozond's Rise",
-            "Darkheart Thicket",
-            "The Everbloom",
-            "Throne of the Tides",
-            "Waycrest Manor"
+            "Brackenhide Hollow",
+            "Halls of Infusion",
+            "Neltharus",
+            "Uldaman: Legacy of Tyr",
+            "Algeth'ar Academy",
+            "The Azure Vault",
+            "The Nokhud Offensive",
+            "Ruby Life Pools"
         ]
-        # all_dungeons = [
-        #     "Brackenhide Hollow",
-        #     "Halls of Infusion",
-        #     "Neltharus",
-        #     "Uldaman: Legacy of Tyr",
-        #     "Algeth'ar Academy",
-        #     "The Azure Vault",
-        #     "The Nokhud Offensive",
-        #     "Ruby Life Pools"
-        # ]
         base_score = {
             "2" : "40",
             "3" : "45",
@@ -419,25 +409,15 @@ class mplus(commands.Cog):
             return
         message_to_send = []
         keystones_ilvl = {
-            "2": (441, "Veteran 1/8", 454, "Champion 1/8"),
-            "3": (444, "Veteran 2/8", 457, "Champion 2/8"),
-            "4": (444, "Veteran 2/8", 460, "Champion 3/8"),
-            "5": (447, "Veteran 3/8", 460, "Champion 3/8"),
-            "6": (447, "Veteran 3/8", 463, "Champion 4/8"),
-            "7": (450, "Veteran 4/8", 463, "Champion 4/8"),
-            "8": (450, "Veteran 4/8", 467, "Hero 1/6"),
-            "9": (454, "Champion 1/8", 467, "Hero 1/6"),
-            "10": (454, "Champion 1/8", 470, "Hero 2/6"),
-            "11": (457, "Champion 2/8", 470, "Hero 2/6"),
-            "12": (457, "Champion 2/8", 473, "Hero 3/6"),
-            "13": (460, "Champion 3/8", 473, "Hero 3/6"),
-            "14": (460, "Champion 3/8", 473, "Hero 3/6"),
-            "15": (463, "Champion 4/8", 476, "Hero 4/6"),
-            "16": (463, "Champion 4/8", 476, "Hero 4/6"),
-            "17": (467, "Hero 1/6", 476, "Hero 4/6"),
-            "18": (467, "Hero 1/6", 480, "Myth 1/4"),
-            "19": (470, "Hero 2/6", 480, "Myth 1/4"),
-            "20": (470, "Hero 2/6", 483, "Myth 2/4")
+            "2": (496, "Champion 2/8", 509, "Hero 2/6"),
+            "3": (499, "Champion 3/8", 509, "Hero 2/6"),
+            "4": (499, "Champion 3/8", 512, "Hero 3/6"),
+            "5": (502, "Champion 4/8", 512, "Hero 3/6"),
+            "6": (502, "Champion 4/8", 515, "Hero 4/6"),
+            "7": (506, "Hero 1/6", 515, "Hero 4/6"),
+            "8": (506, "Hero 1/6", 519, "Myth 1/4"),
+            "9": (509, "Hero 2/6", 519, "Myth 1/4"),
+            "10": (509, "Hero 2/6", 522, "Myth 2/4"),
         }
 
         if arg == None:
@@ -478,7 +458,7 @@ class mplus(commands.Cog):
         10: ("Tyrannical", "Afflicted", "Bolstering")
         }
 
-        start_date = datetime.date(2023, 11, 15)
+        start_date = datetime.date(2024, 4, 24)
         current_date = datetime.date.today()
         weeks_passed = (current_date - start_date).days // 7
         if weeks_passed < 0:
@@ -490,8 +470,8 @@ class mplus(commands.Cog):
         affixes = affix_rotation[target_week]
         await ctx.send(f"**({start_of_week.strftime('%d.%m')} - {end_of_week.strftime('%d.%m')})** Affixes:\n\n"
                         f"**+2:** {affixes[0]}\n"
-                        f"**+7:** {affixes[1]}\n"
-                        f"**+14:** {affixes[2]}")
+                        f"**+5:** {affixes[1]}\n"
+                        f"**+10:** {affixes[2]}")
 
     @tasks.loop(hours=24.0)
     async def check(self):
