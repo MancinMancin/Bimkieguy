@@ -8,32 +8,21 @@ class keystorage(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.keystones = {}
+        self.reset_keys.start()
 
         with open('keys.json', 'r') as f:
             self.keystones = json.load(f)
 
         self.dungeons = {
-            "ad": "Atal'Dazar",
-            "brh": "Black Rook Hold",
-            "fall": "Dawn of the Infinite: Galakrond's Fall",
-            "rise": "Dawn of the Infinite: Murozond's Rise",
-            "dht": "Darkheart Thicket",
-            "eb": "The Everbloom",
-            "tott": "Throne of the Tides",
-            "wm": "Waycrest Manor",
+            "bh": "Brackenhide Hollow",
+            "hoi": "Halls of Infusion",
+            "nelt": "Neltharus",
+            "uld": "Uldaman: Legacy of Tyr",
+            "aa": "Algeth'ar Academy",
+            "av": "The Azure Vault",
+            "no": "The Nokhud Offensive",
+            "rlp": "Ruby Life Pools"
         }
-        # self.dungeons = {
-        # "bh": "Brackenhide Hollow",
-        # "hoi": "Halls of Infusion",
-        # "nelt": "Neltharus",
-        # "uld": "Uldaman: Legacy of Tyr",
-        # "aa": "Algeth'ar Academy",
-        # "av": "The Azure Vault",
-        # "no": "The Nokhud Offensive",
-        # "rlp": "Ruby Life Pools"
-        # }
-
-
 
     @tasks.loop(time=datetime.time(hour=4))
     async def reset_keys(self):
