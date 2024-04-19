@@ -13,7 +13,7 @@ async def on_ready():
         await bot.load_extension(f"bot_package.{extension}")
     print(f"Logged in as {bot.user}")
 
-@bot.command() #as
+@bot.command()
 @commands.is_owner()
 async def load(ctx, extension):
     try:
