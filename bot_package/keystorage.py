@@ -45,9 +45,8 @@ class keystorage(commands.Cog):
                 keyholder_name = match.group(1)
                 dungeon_name = match.group(2)
                 dungeon_level = match.group(3)
-                server_id = message.guild.id
-                if server_id not in self.keystones.keys():
-                    self.keystones.setdefault(server_id, {})
+                server_id = str(message.guild.id)
+                self.keystones.setdefault(server_id, {})
                 if dungeon_name not in self.dungeons.values():
                     unrecognized_dungeons = True
                     break
