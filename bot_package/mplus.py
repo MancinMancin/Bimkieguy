@@ -446,16 +446,16 @@ class mplus(commands.Cog):
             await ctx.send("Podaj cyfrę")
             return
         affix_rotation = {
-        1: ("Fortified", "Incorporeal", "Sanguine"),
-        2: ("Tyrannical", "Entangling", "Bursting"),
-        3: ("Fortified", "Volcanic", "Spiteful"),
-        4: ("Tyrannical", "Storming", "Raging"),
-        5: ("Fortified", "Entangling", "Bolstering"),
-        6: ("Tyrannical", "Incorporeal", "Spiteful"),
-        7: ("Fortified", "Afflicted", "Raging"),
-        8: ("Tyrannical", "Volcanic", "Sanguine"),
-        9: ("Fortified", "Storming", "Bursting"),
-        10: ("Tyrannical", "Afflicted", "Bolstering")
+        1: ("Tyrannical", "Storming", "Raging"),
+        2: ("Fortified", "Entangling", "Bolstering"),
+        3: ("Tyrannical", "Incorporeal", "Spiteful"),
+        4: ("Fortified", "Afflicted", "Raging"),
+        5: ("Tyrannical", "Volcanic", "Sanguine"),
+        6: ("Fortified", "Storming", "Bursting"),
+        7: ("Tyrannical", "Afflicted", "Bolstering"),
+        8: ("Fortified", "Incorporeal", "Sanguine"),
+        9: ("Tyrannical", "Entangling", "Bursting"),
+        10: ("Fortified", "Volcanic", "Spiteful"),
         }
 
         start_date = datetime.date(2024, 4, 24)
