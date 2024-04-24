@@ -24,7 +24,7 @@ class keystorage(commands.Cog):
             "rlp": "Ruby Life Pools"
         }
 
-    @tasks.loop(time=datetime.time(hour=4))
+    @tasks.loop(time=datetime.time(hour=4, minute=0, second=0))
     async def reset_keys(self):
         if datetime.datetime.now().weekday() == 2:
             channel = self.bot.get_channel(1077890228854988860)
