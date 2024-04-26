@@ -10,7 +10,11 @@ ext = ["keystorage", "moonie", "mplus", "other", "social", "wow"]
 @bot.event
 async def on_ready():
     for extension in ext:
-        await bot.load_extension(f"bot_package.{extension}")
+        try:
+            await bot.load_extension(f"bot_package.{extension}")
+            print(f"{extension} successfully loaded")
+        except (commands.ExtensionNotFound, commands.ExtensionAlreadyLoaded) as e:
+            print(f"{extension} couldn't load\n\nError: {e}")
     print(f"Logged in as {bot.user}")
 
 @bot.command()
