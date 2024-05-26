@@ -152,7 +152,7 @@ class moonie(commands.Cog):
     @commands.command()
     async def countdown(self, ctx: commands.Context):
         if self.is_moojins(ctx):
-            target_date = datetime.datetime(2024, 5, 1)
+            target_date = datetime.datetime(2024, 8, 24)
             date = datetime.datetime.now()
             time_difference = target_date - date
             days_remaining = time_difference.days
@@ -163,7 +163,7 @@ class moonie(commands.Cog):
             if days_remaining == 1:
                 await ctx.send(f"**{days_remaining}** DZIEŃ DO ZOBACZENIA {target_seen}")
             else:
-                await ctx.send(f"**{days_remaining}** dni DO ZOBACZENIA {target_seen}")
+                await ctx.send(f"**{days_remaining}** DNI DO ZOBACZENIA {target_seen}")
 
     @commands.command()
     async def goodnight(self, ctx: commands.Context):
