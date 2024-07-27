@@ -16,7 +16,7 @@ class mplus(commands.Cog):
         self.reset_cache.start()
         self.check.start()
 
-    def select_elements(tanks, healers, dps, keyholders): # @bułkarze
+    def select_elements(self, tanks, healers, dps, keyholders): # @bułkarze
         while True:
             chosen_dps, chosen_healer, chosen_tank, chosen_keyholder = None, None, None, None
             while chosen_keyholder not in dps + healers + tanks:
@@ -57,7 +57,7 @@ class mplus(commands.Cog):
                 continue
             return chosen_tank, chosen_healer, chosen_dps, chosen_keyholder
 
-    def weekly_gaming(tanks, healers, dps): # @weekly
+    def weekly_gaming(self, tanks, healers, dps): # @donzon
         while True:
             chosen_tank, chosen_healer, chosen_dps = None, None, None
             if len(tanks) >= 1:
@@ -73,6 +73,12 @@ class mplus(commands.Cog):
             if not all([chosen_tank, chosen_healer, chosen_dps]):
                 continue
             return chosen_tank, chosen_healer, chosen_dps
+        
+    def make_embed(self, title=None, desc=None, color=None, list=None,):
+        embed = discord.Embed(title=title, description=desc, colour=color)
+        for n in range(len(list)):
+            embed.add_field(name=list[n][0], inline=list[n][1], value='\n'.join(list[n][2:]))
+        return embed
         
     @commands.Cog.listener()
     async def on_reaction_add(self, reaction: discord.Reaction, member: discord.Member):
@@ -213,45 +219,45 @@ class mplus(commands.Cog):
     @commands.command()
     async def rio(self, ctx: commands.Context, char: str = None, level: str = None, fortyra: str = None):
         all_dungeons = [
-            "Brackenhide Hollow",
-            "Halls of Infusion",
-            "Neltharus",
-            "Uldaman: Legacy of Tyr",
-            "Algeth'ar Academy",
-            "The Azure Vault",
-            "The Nokhud Offensive",
-            "Ruby Life Pools"
+            "Ara-Kara, City of Echoes",
+            "City of Threads",
+            "Grim Batol",
+            "Mists of Tirna Scithe",
+            "Siege of Boralus",
+            "The Dawnbreaker",
+            "The Necrotic Wake",
+            "The Stonevault"
         ]
         base_score = {
-            "2" : "40",
-            "3" : "45",
-            "4" : "55",
-            "5" : "60",
-            "6" : "65",
-            "7" : "75",
-            "8" : "80",
-            "9" : "85",
-            "10" : "100",
-            "11" : "107",
-            "12" : "114",
-            "13" : "121",
-            "14" : "128",
-            "15" : "135",
-            "16" : "142",
-            "17" : "149",
-            "18" : "156",
-            "19" : "163",
-            "20" : "170",
-            "21" : "177",
-            "22" : "184",
-            "23" : "191",
-            "24" : "198",
-            "25" : "205",
-            "26" : "212",
-            "27" : "219",
-            "28" : "226",
-            "29" : "233",
-            "30" : "240"
+            "2" : "94",
+            "3" : "101",
+            "4" : "108",
+            "5" : "125",
+            "6" : "132",
+            "7" : "139",
+            "8" : "146",
+            "9" : "153",
+            "10" : "170",
+            "11" : "177",
+            "12" : "184",
+            "13" : "191",
+            "14" : "198",
+            "15" : "205",
+            "16" : "212",
+            "17" : "219",
+            "18" : "226",
+            "19" : "233",
+            "20" : "240",
+            "21" : "247",
+            "22" : "254",
+            "23" : "261",
+            "24" : "268",
+            "25" : "275",
+            "26" : "282",
+            "27" : "289",
+            "28" : "296",
+            "29" : "303",
+            "30" : "310"
     }
         default_realm = "burninglegion"
         message_to_send = []
@@ -369,26 +375,26 @@ class mplus(commands.Cog):
                     round_score = score_from_dung.__round__(1)
                     rio_increase.update({dungeon: round_score})
                 elif fortyra == None:
-                        if points <= tyra_score and points <= forti_score:
-                            continue
-                        if points > tyra_score and points > forti_score:
-                            if tyra_score == 0 and forti_score != 0:
-                                points_to_add = two_points - forti_best
-                            elif forti_score == 0 and tyra_score != 0:
-                                points_to_add = two_points - tyra_best
-                            elif forti_score == 0 and tyra_score == 0:
-                                points_to_add = two_points
-                            else:
-                                if tyra_score >= forti_score:
-                                    points_to_add = two_points - tyra_best  - forti_alt
-                                if tyra_score < forti_score:
-                                    points_to_add = two_points - tyra_alt - forti_best
-                        if points > tyra_score and points <= forti_score:
-                            points_to_add = half_points - tyra_alt
-                        if points <= tyra_score and points > forti_score:
-                            points_to_add = half_points - forti_alt
-                        points_rounded = points_to_add.__round__(1)
-                        points_at_lvl.append(points_rounded)
+                    if points <= tyra_score and points <= forti_score:
+                        continue
+                    if points > tyra_score and points > forti_score:
+                        if tyra_score == 0 and forti_score != 0:
+                            points_to_add = two_points - forti_best
+                        elif forti_score == 0 and tyra_score != 0:
+                            points_to_add = two_points - tyra_best
+                        elif forti_score == 0 and tyra_score == 0:
+                            points_to_add = two_points
+                        else:
+                            if tyra_score >= forti_score:
+                                points_to_add = two_points - tyra_best  - forti_alt
+                            if tyra_score < forti_score:
+                                points_to_add = two_points - tyra_alt - forti_best
+                    if points > tyra_score and points <= forti_score:
+                        points_to_add = half_points - tyra_alt
+                    if points <= tyra_score and points > forti_score:
+                        points_to_add = half_points - forti_alt
+                    points_rounded = points_to_add.__round__(1)
+                    points_at_lvl.append(points_rounded)
         if points_at_lvl:
             summed = sum(points_at_lvl)
             summed_score = summed.__round__(1) + overall_score
@@ -404,41 +410,57 @@ class mplus(commands.Cog):
     
     @commands.command()
     async def ilvl(self, ctx: commands.Context, arg: str = None):
-        if arg is not None and not arg.isdigit():
-            await ctx.send("Podaj liczbę")
-            return
-        message_to_send = []
         keystones_ilvl = {
-            "2": (496, "Champion 2/8", 509, "Hero 2/6"),
-            "3": (499, "Champion 3/8", 509, "Hero 2/6"),
-            "4": (499, "Champion 3/8", 512, "Hero 3/6"),
-            "5": (502, "Champion 4/8", 512, "Hero 3/6"),
-            "6": (502, "Champion 4/8", 515, "Hero 4/6"),
-            "7": (506, "Hero 1/6", 515, "Hero 4/6"),
-            "8": (506, "Hero 1/6", 519, "Myth 1/4"),
-            "9": (509, "Hero 2/6", 519, "Myth 1/4"),
-            "10": (509, "Hero 2/6", 522, "Myth 2/4"),
+            "hc": ("580", "Adventurer 4/8", "593", "Veteran 4/8", "Weathered"),
+            "0": ("593", "Veteran 4/8", "603", "Champion 3/8", "Carved"),
+            "2": ("597", "Champion 1/8", "606", "Champion 4/8", "Carved"),
+            "3": ("597", "Champion 1/8", "610", "Hero 1/6", "Carved"),
+            "4": ("600", "Champion 2/8", "610", "Hero 1/6", "Runed"),
+            "5": ("603", "Champion 3/8", "613", "Hero 2/6", "Runed"),
+            "6": ("606", "Champion 4/8", "613", "Hero 2/6", "Runed"),
+            "7": ("610", "Hero 1/6", "616", "Hero 3/6", "Runed"),
+            "8": ("610", "Hero 1/6", "619", "Hero 4/6", "Runed"),
+            "9": ("613", "Hero 2/6", "619", "Hero 4/6", "Gilded"),
+            "10": ("613", "Hero 2/6", "623", "Myth 1/6", "Gilded"),
         }
-
         if arg == None:
-            for k in keystones_ilvl:
-                end = f"{keystones_ilvl[k][0]} {keystones_ilvl[k][1]}"
-                gv = f"{keystones_ilvl[k][2]} {keystones_ilvl[k][3]}"
-                message_to_send.append(f"**{k}**: {end} --- {gv}")
-            message_to_send = "\n".join(message_to_send)
-            await ctx.send(message_to_send)
-            return
+            pass
+        elif arg.isdigit():
+            arg = int(arg)
+            if arg == 1:
+                arg = 0
+            elif arg > 10:
+                arg = 10
+        elif arg.lower() in keystones_ilvl:
+            arg = arg.lower()
 
-        if int(arg) > 20:
-            end_of_dung_ilvl = f"{keystones_ilvl['20'][0]} {keystones_ilvl['20'][1]}"
-            gv_ilvl = f"{keystones_ilvl['20'][2]} {keystones_ilvl['20'][3]}"
-        elif arg in keystones_ilvl:
-            end_of_dung_ilvl = f"{keystones_ilvl[arg][0]} {keystones_ilvl[arg][1]}"
-            gv_ilvl = f"{keystones_ilvl[arg][2]} {keystones_ilvl[arg][3]}"
-        else:
-            await ctx.send("Inappropriate dungeon level")
-            return
-        await ctx.send(f"End of dungeon ilvl: **{end_of_dung_ilvl}**\nGreat Vault ilvl: **{gv_ilvl}**")
+        end_ilvl_list = ["Ilvl", True]
+        end_track_list = ["Track", True]
+        gv_ilvl_list = ["GV ilvl", True]
+        gv_track_list = ["GV track", True]
+        crest_list = ["Crest", True]
+        for level, value in keystones_ilvl.items():
+            if arg is None or str(arg) == level:
+                end_ilvl, end_track, gv_ilv, gv_track, crest = value
+                end_ilvl = f"`{level}` {end_ilvl}"
+                end_track = f"`{level}` {end_track}"
+                gv_ilv = f"`{level}` {gv_ilv}"
+                gv_track = f"`{level}` {gv_track}"
+                crest = f"`{level}` {crest}"
+                end_ilvl_list.append(end_ilvl)
+                end_track_list.append(end_track)
+                gv_ilvl_list.append(gv_ilv)
+                gv_track_list.append(gv_track)
+                crest_list.append(crest)
+        embed_list = [end_ilvl_list, end_track_list, gv_ilvl_list, gv_track_list, crest_list]
+        for n in range(5):
+            value = '\n'.join(embed_list[n][2:])
+            embed_list[n].append(value)
+            del embed_list[n][2:-1]
+
+        title = "Dungeon item levels"
+        embed = self.make_embed(title, None, None, embed_list)
+        await ctx.send(embed=embed)
 
     @commands.command()
     async def affix(self, ctx: commands.Context, next_week: str = "0"):

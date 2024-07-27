@@ -223,20 +223,5 @@ class wow(commands.Cog):
         )
         await ctx.send(f"ability.id IN {defensives}")
 
-    @commands.command()
-    async def hp(self, ctx: commands.Context):
-        rzeczy = (
-            370511, # Refreshing Healing Potion
-            415569, # Dreamwalker's Healing Potion
-            6262, # Healthstone
-        )
-        await ctx.send(f"ability.id IN {rzeczy}")
-
-    @commands.command()
-    async def potki(self, ctx: commands.Context):
-        rzeczy = 371028 # Elemental Potion of Ultimate Power
-        
-        await ctx.send(f"ability.id IN ({rzeczy})")
-
 async def setup(bot):
     await bot.add_cog(wow(bot))

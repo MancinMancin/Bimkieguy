@@ -5,7 +5,7 @@ from config import TOKEN
 bot = commands.Bot(command_prefix='/', intents=discord.Intents.all())
 bot.remove_command("help")
 
-ext = ["keystorage", "moonie", "mplus", "other", "social", "wow"]
+ext = ["keystorage", "mplus", "other", "social", "wow"]
 
 @bot.event
 async def on_ready():
