@@ -14,14 +14,14 @@ class keystorage(commands.Cog):
             self.keystones = json.load(f)
 
         self.dungeons = {
-            "bh": "Brackenhide Hollow",
-            "hoi": "Halls of Infusion",
-            "nelt": "Neltharus",
-            "uld": "Uldaman: Legacy of Tyr",
-            "aa": "Algeth'ar Academy",
-            "av": "The Azure Vault",
-            "no": "The Nokhud Offensive",
-            "rlp": "Ruby Life Pools"
+            "arak": "Ara-Kara, City of Echoes",
+            "cot": "City of Threads",
+            "gb": "Grim Batol",
+            "mists": "Mists of Tirna Scithe",
+            "siege": "Siege of Boralus",
+            "dawn": "The Dawnbreaker",
+            "nw": "The Necrotic Wake",
+            "sv": "The Stonevault"
         }
 
     @tasks.loop(time=datetime.time(hour=4, minute=0, second=0))
