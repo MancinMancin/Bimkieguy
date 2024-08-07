@@ -9,6 +9,7 @@ class keystorage(commands.Cog):
         self.bot = bot
         self.keystones = {}
         self.reset_keys.start()
+        self.last_reset_time = None
 
         with open('keys.json', 'r') as f:
             self.keystones = json.load(f)
@@ -26,12 +27,14 @@ class keystorage(commands.Cog):
 
     @tasks.loop(time=datetime.time(hour=4, minute=0, second=0))
     async def reset_keys(self):
-        if datetime.datetime.now().weekday() == 2:
+        now = datetime.datetime.now()
+        if now.weekday() == 2 and (self.last_reset_time is None or now - self.last_reset_time > datetime.timedelta(minutes=1)):
             channel = self.bot.get_channel(1077890228854988860)
             self.keystones.clear()
             with open('keys.json', 'w') as f:
                 json.dump(self.keystones, f)
             await channel.send("Key list reset")
+            self.last_reset_time = now
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
