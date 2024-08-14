@@ -8,8 +8,8 @@ class keystorage(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.keystones = {}
-        self.reset_keys.start()
-        self.last_reset_time = None
+        self.loops = [self.reset_keys]
+        [x.start() for x in self.loops]
 
         with open('keys.json', 'r') as f:
             self.keystones = json.load(f)
@@ -24,17 +24,19 @@ class keystorage(commands.Cog):
             "nw": "The Necrotic Wake",
             "sv": "The Stonevault"
         }
+    
+    def cog_unload(self):
+        [x.cancel() for x in self.loops]
 
     @tasks.loop(time=datetime.time(hour=4, minute=0, second=0))
     async def reset_keys(self):
         now = datetime.datetime.now()
-        if now.weekday() == 2 and (self.last_reset_time is None or now - self.last_reset_time > datetime.timedelta(minutes=1)):
+        if now.weekday() == 2:
             channel = self.bot.get_channel(1077890228854988860)
             self.keystones.clear()
             with open('keys.json', 'w') as f:
                 json.dump(self.keystones, f)
             await channel.send("Key list reset")
-            self.last_reset_time = now
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
