@@ -10,7 +10,11 @@ class wow(commands.Cog):
                        "<https://wago.io/Vt4e96WAA>\n\n"
                        
                        "**Dungeon Teleports:**\n"
-                       "<https://wago.io/aCa7oAT5y>")
+                       "<https://wago.io/aCa7oAT5y>\n\n"
+                       
+                       "**Cresty Addon:**\n"
+                       "https://www.curseforge.com/wow/addons/cresty")
+        
         
     @commands.command()
     async def avd(self, ctx: commands.Context, *args: list[str]):
