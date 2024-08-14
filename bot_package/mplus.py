@@ -13,8 +13,11 @@ class mplus(commands.Cog):
         self.role_bulkarze = "<@&989535345370628126>"
         self.role_donzon = "<@&1087697492038131762>"
         self.cache = {}
-        self.reset_cache.start()
-        self.check.start()
+        self.loops = [self.reset_cache, self.check]
+        [x.start() for x in self.loops]
+
+    def cog_unload(self):
+        [x.cancel() for x in self.loops]
 
     def select_elements(self, tanks, healers, dps, keyholders): # @bułkarze
         while True:
