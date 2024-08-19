@@ -161,6 +161,7 @@ class signups(commands.Cog):
 
     @commands.command()
     async def signups(self, ctx: commands.Context, date: str, time: str, *args: str):
+        await ctx.message.delete()
         unix = self.make_unix(date, time)
         if not unix:
             await ctx.send("Wrong date or time")
@@ -178,6 +179,7 @@ class signups(commands.Cog):
             ]
         url = "https://i.imgur.com/9rcj0qB.png"
         embed = self.make_embed(title, info, colour, fields, url)
+        await ctx.send("<@&1105548968697540679>")
         message = await ctx.send(embed=embed, view=self.View(self))
         self.eventy.append((message, unix))
 
