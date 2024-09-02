@@ -5,7 +5,7 @@ import typing
 import time as tm
 import discord
 
-class signups(commands.Cog):
+class aha(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.klasy = {
@@ -22,6 +22,16 @@ class signups(commands.Cog):
             "Shaman": (("Heal", "DPS"), "<:shaman:1274858431131680850>"),
             "Warlock": (("DPS",), "<:warlock:1274858433488752773>"),
             "Warrior": (("Tank", "DPS"), "<:warrior:1274858511112736798>")
+        }
+        self.dreadful = "Dreadful"
+        self.mystic = "Mystic"
+        self.venerated = "Venerated"
+        self.zenith = "Zenith"
+        self.sets = {
+            self.dreadful: ("<:deathknight:1274858415629271141>", "<:demon_hunter:1274858416656879692>", "<:warlock:1274858433488752773>"),
+            self.mystic: ("<:druid:1274858419089838172>", "<:hunter:1274858422264664064>", "<:mage:1274858423149920389>"),
+            self.venerated: ("<:paladin:1274858426547310633>", "<:priest:1274858427956592670>", "<:shaman:1274858431131680850>"),
+            self.zenith: ("<:evoker:1274858507388321844>", "<:monk:1274858425142083636>", "<:rogue:1274858509263175693>", "<:warrior:1274858511112736798>"),
         }
         self.eventy: list[discord.Message] = []
         self.loops = [self.delete_event]
@@ -44,7 +54,7 @@ class signups(commands.Cog):
         for message, _ in self.eventy:
             if interaction.message.id == message.id:
                 embed_to_edit: discord.Embed = message.embeds[0]
-                for i, field in enumerate(embed_to_edit.fields[3:]):
+                for i, field in enumerate(embed_to_edit.fields[4:]):
                     emoji = self.klasy.get(answers[0])[1]
                     lines = field.value.split("\n")
                     new_lines = [line for line in lines if interaction.user.mention not in line]
@@ -52,23 +62,46 @@ class signups(commands.Cog):
                     if role in field.name:
                         field.value = f"{field.value}\n{emoji}{interaction.user.mention}"
                     length = len(field.value.split("\n"))
-                    embed_to_edit.set_field_at(i + 3, name=f"{field.name[:-4]} `{length - 1}`", value=field.value, inline=field.inline)
-                all = sum(len(field.value.split("\n")) for field in embed_to_edit.fields[3:]) - 3
-                kek_field = embed_to_edit.fields[2]
+                    embed_to_edit.set_field_at(i + 4, name=f"{field.name[:-4]} `{length - 1}`", value=field.value, inline=field.inline)
+
+                # Edit total
+                all = sum(len(field.value.split("\n")) for field in embed_to_edit.fields[4:]) - 3
+                kek_field = embed_to_edit.fields[3]
                 kek_field.value = f"`{all}`"
-                embed_to_edit.set_field_at(2, name=kek_field.name, value=kek_field.value, inline=kek_field.inline)
+                embed_to_edit.set_field_at(3, name=kek_field.name, value=kek_field.value, inline=kek_field.inline)
 
                 # Edit buffs
                 buff_field = embed_to_edit.fields[1]
                 buffs = ''.join([value[1] for value in self.klasy.values()])
                 buffs += "\n"
-                classes_in_embed = "".join([field.value for field in embed_to_edit.fields[3:]])
+                classes_in_embed = "".join([field.value for field in embed_to_edit.fields[4:]])
                 for value in self.klasy.values():
                     buffs += "<a:check:1274861623525376194>" if value[1] in classes_in_embed else "❌"
                 buff_field.value = buffs
                 embed_to_edit.set_field_at(1, name=buff_field.name, value=buff_field.value, inline=buff_field.inline)
+
+                # Edit sets
+                sets = [0, 0, 0, 0]
+                for i, (_, emojis) in enumerate(self.sets.items()):
+                    for emoji in emojis:
+                        count = classes_in_embed.count(emoji)
+                        sets[i] += count
+                sets_field = embed_to_edit.fields[2]
+                sets_field.value = (f"{self.dreadful}: `{sets[0]}` {''.join(self.sets.get(self.dreadful))}\n"
+                                    f"{self.mystic}: `{sets[1]}` {''.join(self.sets.get(self.mystic))}\n"
+                                    f"{self.venerated}: `{sets[2]}` {''.join(self.sets.get(self.venerated))}\n"
+                                    f"{self.zenith}: `{sets[3]}` {''.join(self.sets.get(self.zenith))}")
+                embed_to_edit.set_field_at(2, name=sets_field.name, value=sets_field.value, inline=sets_field.inline)
                 await message.edit(embed=embed_to_edit)
 
+    def get_emojis(self, name: str) -> list[str]:
+        classes = self.sets[name]
+        emoji_list = []
+        for classa in classes:
+            emoji = self.klasy.get(classa)[1]
+            emoji_list.append(emoji)
+        return emoji_list
+    
     class ZapisyZamkniete(discord.ui.View):
         def __init__(self):
             super().__init__()
@@ -89,8 +122,8 @@ class signups(commands.Cog):
             ]
             super().__init__(options=options, placeholder="Wybierz klasę")
         async def callback(self, interaction: discord.Interaction):
-            await self.main_interaction.edit_original_response(content="Zapisano", view=None)
             await self.cog_self.edit_embed(self.main_interaction, self.role, self.values)
+            await self.main_interaction.edit_original_response(content="Zapisano", view=None)
 
     class View(discord.ui.View):
         def __init__(self, cog_self):
@@ -118,7 +151,7 @@ class signups(commands.Cog):
     def make_unix(self, date: str, time: str) -> typing.Tuple[str, str]:
         pattern_date = r"(3[01]|[12][0-9]|0?[1-9])[\.\-\:\/]?(1[0-2]|0?[1-9])?[.\-\:\/]?(\d{4})?"
         date_match = re.match(pattern_date, date)
-        pattern_time = r"([01]?[0-9]|2[0-3])[\.\-\:]?([0-5][0-9])?"
+        pattern_time = r"([01][0-9]|2[0-3]|[0-9])[\.\-\:]?([0-5][0-9])?"
         time_match = re.match(pattern_time, time)
         if not date_match and not time_match:
             return
@@ -160,8 +193,7 @@ class signups(commands.Cog):
         return embed
 
     @commands.command()
-    async def signups(self, ctx: commands.Context, date: str, time: str, *args: str):
-        await ctx.message.delete()
+    async def signup(self, ctx: commands.Context, date: str, time: str, *args: str):
         unix = self.make_unix(date, time)
         if not unix:
             await ctx.send("Wrong date or time")
@@ -169,9 +201,14 @@ class signups(commands.Cog):
         info = " ".join(args)
         title = "Event"
         colour = 000000
+        sets_value = (f"{self.dreadful}: `0` {''.join(self.sets.get(self.dreadful))}\n"
+                        f"{self.mystic}: `0` {''.join(self.sets.get(self.mystic))}\n"
+                        f"{self.venerated}: `0` {''.join(self.sets.get(self.venerated))}\n"
+                        f"{self.zenith}: `0` {''.join(self.sets.get(self.zenith))}")
         fields = [
             ("Time", f"<t:{unix}:F>", False),
             ("Buffs", f"{''.join([value[1] for value in self.klasy.values()])}\n{'❌'*len(self.klasy)}", False),
+            ("Sets", sets_value, True),
             ("<:kekwsalute:1165092829886951424>", "`0`", False),
             ("<:Tank_icon:1103828509996089499>Tanks `0`" , "", True),    
             ("<:Healer_icon:1103828598722416690>Healers `0`", "", True),
@@ -184,4 +221,4 @@ class signups(commands.Cog):
         self.eventy.append((message, unix))
 
 async def setup(bot):
-    await bot.add_cog(signups(bot))
+    await bot.add_cog(aha(bot))

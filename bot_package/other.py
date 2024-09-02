@@ -17,7 +17,7 @@ class other(commands.Cog):
                 "🔸/keys <character>\n"
                 "🔸/keys <user ping>\n"
                 "🔸/keys <level>\n"
-                "🔸/keys <level><- or +>"
+                "🔸/keys <level><- or +>\n"
                 "🔸/keys abbr\n" 
                 "🔸<keyholder> - [Keystone: <dungeon> (<level>)]", False),
             "Raider.io": ("🔸/rio <character>-<realm>\n"
@@ -26,7 +26,6 @@ class other(commands.Cog):
             "Poll": ("🔸/poll <about>, <option_1>, <option_2>,...", False),
             "Dungeon ilvls": ("🔸/ilvl\n"
                 "🔸/ilvl <level>\n", False),
-            "Dungeon Guides": ("🔸/guide <dungeon>", False),
             "Affixes": ("🔸/affix\n"
                         "🔸/affix <week in advance>", False)
         }
