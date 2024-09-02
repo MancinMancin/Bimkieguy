@@ -193,7 +193,7 @@ class aha(commands.Cog):
         return embed
 
     @commands.command()
-    async def signup(self, ctx: commands.Context, date: str, time: str, *args: str):
+    async def signups(self, ctx: commands.Context, date: str, time: str, *args: str):
         unix = self.make_unix(date, time)
         if not unix:
             await ctx.send("Wrong date or time")
