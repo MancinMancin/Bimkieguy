@@ -102,7 +102,7 @@ class keystorage(commands.Cog):
                             matching_keys.append(f'{keyholder} - [Keystone: {key} ({list(level.keys())[0]})]')
                         elif sign == ("-") and int(l) <= int(given_levels):
                             matching_keys.append(f'{keyholder} - [Keystone: {key} ({list(level.keys())[0]})]')
-        elif arg.lower() in self.dungeons.keys() or arg.lower in map(str.lower, self.dungeons.values()):
+        elif arg.lower() in self.dungeons.keys() or arg.lower() in map(str.lower, self.dungeons.values()):
             found_keys = {}
             key = self.dungeons.get(arg.lower()) or [v for v in self.dungeons.values() if v.lower() == arg.lower()][0]
             found_keys = self.keystones.get(server_id, {}).get(key, {})
