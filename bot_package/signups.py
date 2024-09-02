@@ -194,6 +194,7 @@ class aha(commands.Cog):
 
     @commands.command()
     async def signups(self, ctx: commands.Context, date: str, time: str, *args: str):
+        await ctx.message.delete()
         unix = self.make_unix(date, time)
         if not unix:
             await ctx.send("Wrong date or time")
