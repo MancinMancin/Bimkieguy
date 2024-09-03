@@ -11,9 +11,12 @@ class wow(commands.Cog):
                        
                        "**Dungeon Teleports:**\n"
                        "<https://wago.io/aCa7oAT5y>\n\n"
+
+                       "**CC Rotation:**\n"
+                       "<https://wago.io/F2nyTZ7q8>\n\n"
                        
                        "**Cresty Addon:**\n"
-                       "https://www.curseforge.com/wow/addons/cresty")
+                       "<https://www.curseforge.com/wow/addons/cresty>")
         
         
     @commands.command()
