@@ -220,7 +220,7 @@ class mplus(commands.Cog):
         self.cache.clear()
 
     @commands.command()
-    async def rio(self, ctx: commands.Context, char: str = None, level: str = None, fortyra: str = None):
+    async def rio(self, ctx: commands.Context, char: str = None, level: str = None):
         all_dungeons = [
             "Ara-Kara, City of Echoes",
             "City of Threads",
@@ -232,40 +232,40 @@ class mplus(commands.Cog):
             "The Stonevault"
         ]
         base_score = {
-            "2" : "94",
-            "3" : "101",
-            "4" : "108",
-            "5" : "125",
-            "6" : "132",
-            "7" : "139",
-            "8" : "146",
-            "9" : "153",
-            "10" : "170",
-            "11" : "177",
-            "12" : "184",
-            "13" : "191",
-            "14" : "198",
-            "15" : "205",
-            "16" : "212",
-            "17" : "219",
-            "18" : "226",
-            "19" : "233",
-            "20" : "240",
-            "21" : "247",
-            "22" : "254",
-            "23" : "261",
-            "24" : "268",
-            "25" : "275",
-            "26" : "282",
-            "27" : "289",
-            "28" : "296",
-            "29" : "303",
-            "30" : "310"
+            "2" : "165",
+            "3" : "180",
+            "4" : "205",
+            "5" : "220",
+            "6" : "235",
+            "7" : "265",
+            "8" : "280",
+            "9" : "295",
+            "10" : "320",
+            "11" : "335",
+            "12" : "365",
+            "13" : "380",
+            "14" : "395",
+            "15" : "410",
+            "16" : "425",
+            "17" : "440",
+            "18" : "455",
+            "19" : "470",
+            "20" : "485",
+            "21" : "500",
+            "22" : "515",
+            "23" : "530",
+            "24" : "545",
+            "25" : "560",
+            "26" : "575",
+            "27" : "590",
+            "28" : "605",
+            "29" : "620",
+            "30" : "635"
     }
         default_realm = "burninglegion"
         message_to_send = []
-        if char is None or (fortyra is not None and fortyra.lower() not in ["tyra", "tyrannical", "t", "forti", "f", "fortified"]):
-            await ctx.send("Wrong format, try: \"/rio <character>-<realm> <level> <f or t>(optional)\"")
+        if char is None:
+            await ctx.send("Wrong format, try: \"/rio <character>-<realm> <level>\"")
             return
         if level is not None and level not in base_score:
             await ctx.send("Dungeon level inappropriate")
@@ -276,30 +276,23 @@ class mplus(commands.Cog):
             name = char
             realm = default_realm
         rio_increase = {}
-        points_at_lvl = []
         url = f"https://raider.io/api/v1/characters/profile?region=eu&realm={realm}&name={name}&fields=mythic_plus_best_runs"
-        url2 = f"https://raider.io/api/v1/characters/profile?region=eu&realm={realm}&name={name}&fields=mythic_plus_alternate_runs"
         url3 = f"https://raider.io/api/v1/characters/profile?region=eu&realm={realm}&name={name}&fields=mythic_plus_scores_by_season%3Acurrent"
-        if all(url in self.cache for url in [url, url2, url3]):
+        if all(url in self.cache for url in [url, url3]):
             response = self.cache[url]
-            response2 = self.cache[url2]
             response3 = self.cache[url3]
         else:
             response = requests.get(url)
-            response2 = requests.get(url2)
             response3 = requests.get(url3)
             self.cache[url] = response
-            self.cache[url2] = response2
             self.cache[url3] = response3
-        if response.status_code != 200 or response2.status_code != 200 or response3.status_code != 200:
+        if response.status_code != 200 or response3.status_code != 200:
             await ctx.send(f"Error retrieving data")
             return
         overall_score = response3.json()["mythic_plus_scores_by_season"][0]["scores"]["all"]
         nick = response.json()["name"]
-        dungeon_list_tyra = {}
-        dungeon_list_forti = {}
-        best_runs = response.json()["mythic_plus_best_runs"]
-        alt_runs = response2.json()["mythic_plus_alternate_runs"]      
+        dungeon_list = {}
+        best_runs = response.json()["mythic_plus_best_runs"]     
         if level == None:
             if nick.endswith("s"):
                 await ctx.send(f"{nick}' score: **{overall_score}**")
@@ -309,107 +302,33 @@ class mplus(commands.Cog):
         
         for dungeon in all_dungeons:
             if not any(item["dungeon"] == dungeon for item in best_runs):
-                my_dict = {"dungeon": dungeon, "score": 0, "affixes": [{"name": "Fortified",}]}
+                my_dict = {"dungeon": dungeon, "score": 0}
                 best_runs.append(my_dict)
-            if not any(item["dungeon"] == dungeon for item in alt_runs):
-                if any (item["dungeon"] == dungeon and item["affixes"][0]["name"] == "Fortified" for item in best_runs):
-                    my_dict = {"dungeon": dungeon, "score": 0, "affixes": [{"name": "Tyrannical"}]}
-                if any (item["dungeon"] == dungeon and item["affixes"][0]["name"] == "Tyrannical" for item in best_runs):
-                    my_dict = {"dungeon": dungeon, "score": 0, "affixes": [{"name": "Fortified"}]}
-                alt_runs.append(my_dict)
 
-        for run in alt_runs:
-            affix = run["affixes"][0]["name"]
-            dungeon = run["dungeon"]
-            score = run["score"]
-            if affix == "Tyrannical":
-                dungeon_list_tyra.update({dungeon: score})
-            if affix == "Fortified":
-                dungeon_list_forti.update({dungeon: score})
         for run in best_runs:
-            affix = run["affixes"][0]["name"]
             dungeon = run["dungeon"]
             score = run["score"]
-            if affix == "Tyrannical":
-                dungeon_list_tyra.update({dungeon: score})
-            if affix == "Fortified":
-                dungeon_list_forti.update({dungeon: score})
+            dungeon_list.update({dungeon: score})
+
         points = int(base_score[level])
-        for dungeon in dungeon_list_forti:
-            if dungeon in dungeon_list_tyra:
-                forti_score = dungeon_list_forti[dungeon]
-                tyra_score = dungeon_list_tyra[dungeon]
-                if forti_score != 0:
-                    forti_best = (forti_score * 1.5).__round__(1)
-                    forti_alt = (forti_score * 0.5).__round__(1)
-                else:
-                    forti_best = 0
-                    forti_alt = 0
-                if tyra_score != 0:
-                    tyra_best = (tyra_score * 1.5).__round__(1)
-                    tyra_alt = (tyra_score * 0.5).__round__(1)
-                else:
-                    tyra_best = 0
-                    tyra_alt = 0
-                half_points = (points * 0.5).__round__(1)
-                one_half_points = (points * 1.5).__round__(1)
-                two_points = (points * 2).__round__(1) 
-                if fortyra is not None:
-                    if fortyra.lower() == "tyra" or fortyra.lower() == "tyrannical" or fortyra.lower() == "t":
-                        if points > forti_score:
-                            if forti_score > tyra_score:
-                                score_from_dung = one_half_points + forti_alt - forti_best - tyra_alt
-                            elif forti_score <= tyra_score:
-                                score_from_dung = one_half_points - tyra_best
-                        if points <= forti_score:
-                            score_from_dung = half_points - tyra_alt
-                        if score_from_dung < 0:
-                            score_from_dung = 0
-                    elif fortyra.lower() == "forti" or fortyra.lower() == "fortified" or fortyra.lower() == "f":
-                        if points > tyra_score:
-                            if forti_score >= tyra_score:
-                                score_from_dung = one_half_points - forti_best
-                            elif forti_score < tyra_score:
-                                score_from_dung = one_half_points + tyra_alt - tyra_best - forti_alt
-                        if points <= tyra_score:
-                            score_from_dung = half_points - forti_alt
-                        if score_from_dung < 0:
-                            score_from_dung = 0
-                    round_score = score_from_dung.__round__(1)
-                    rio_increase.update({dungeon: round_score})
-                elif fortyra == None:
-                    if points <= tyra_score and points <= forti_score:
-                        continue
-                    if points > tyra_score and points > forti_score:
-                        if tyra_score == 0 and forti_score != 0:
-                            points_to_add = two_points - forti_best
-                        elif forti_score == 0 and tyra_score != 0:
-                            points_to_add = two_points - tyra_best
-                        elif forti_score == 0 and tyra_score == 0:
-                            points_to_add = two_points
-                        else:
-                            if tyra_score >= forti_score:
-                                points_to_add = two_points - tyra_best  - forti_alt
-                            if tyra_score < forti_score:
-                                points_to_add = two_points - tyra_alt - forti_best
-                    if points > tyra_score and points <= forti_score:
-                        points_to_add = half_points - tyra_alt
-                    if points <= tyra_score and points > forti_score:
-                        points_to_add = half_points - forti_alt
-                    points_rounded = points_to_add.__round__(1)
-                    points_at_lvl.append(points_rounded)
-        if points_at_lvl:
-            summed = sum(points_at_lvl)
-            summed_score = summed.__round__(1) + overall_score
-            await ctx.send(f'**{summed.__round__(1)}** for a score of **{summed_score.__round__(1)}**')
-        if rio_increase:
-                    total_score = sum(rio_increase.values())
-                    summed_score = total_score + overall_score
-                    for key, value in rio_increase.items():
-                        message_to_send.append(f"{key} - **{value}**")
-                    message_to_send.append(f"\nTotal: **{total_score.__round__(1)}**, for a score of **{summed_score.__round__(1)}**")
-                    message_to_send = "\n".join(message_to_send)
-                    await ctx.send(message_to_send)
+
+        for dungeon in dungeon_list:
+            score = dungeon_list[dungeon]
+            if points > score:
+                score_from_dung = points - score
+            else:
+                score_from_dung = 0
+            round_score = score_from_dung.__round__(1)
+            rio_increase.update({dungeon: round_score})
+
+        total_score = sum(rio_increase.values())
+        summed_score = total_score + overall_score
+
+        for key, value in rio_increase.items():
+            message_to_send.append(f"{key} - **{value}**")
+        message_to_send.append(f"\nTotal: **{total_score.__round__(1)}**, for a score of **{summed_score.__round__(1)}**")
+        message_to_send = "\n".join(message_to_send)
+        await ctx.send(message_to_send)
     
     @commands.command()
     async def ilvl(self, ctx: commands.Context, arg: str = None):
@@ -470,33 +389,28 @@ class mplus(commands.Cog):
         if not next_week.isdigit():
             await ctx.send("Podaj cyfrę")
             return
-        affix_rotation = {
-        1: ("Tyrannical", "Storming", "Raging"),
-        2: ("Fortified", "Entangling", "Bolstering"),
-        3: ("Tyrannical", "Incorporeal", "Spiteful"),
-        4: ("Fortified", "Afflicted", "Raging"),
-        5: ("Tyrannical", "Volcanic", "Sanguine"),
-        6: ("Fortified", "Storming", "Bursting"),
-        7: ("Tyrannical", "Afflicted", "Bolstering"),
-        8: ("Fortified", "Incorporeal", "Sanguine"),
-        9: ("Tyrannical", "Entangling", "Bursting"),
-        10: ("Fortified", "Volcanic", "Spiteful"),
-        }
+        affix_rotation = (
+            "Ascendant",
+            "?",
+            "?",
+            "?",
+        )
+        forti_or_tyra = ("Tyrannical", "Fortified")
 
-        start_date = datetime.date(2024, 4, 24)
+        start_date = datetime.date(2024, 9, 18)
         current_date = datetime.date.today()
         weeks_passed = (current_date - start_date).days // 7
         if weeks_passed < 0:
             weeks_passed = 0
-        current_week = (weeks_passed % len(affix_rotation)) + 1
-        target_week = current_week + int(next_week)
+        current_week = weeks_passed % len(affix_rotation)
+        target_week = (current_week + int(next_week)) % len(affix_rotation)
+        fortyra = next_week % 2
         start_of_week = start_date + datetime.timedelta(weeks=weeks_passed + int(next_week))
         end_of_week = start_of_week + datetime.timedelta(days=6)
-        affixes = affix_rotation[target_week]
+        affix = affix_rotation[target_week]
         await ctx.send(f"**({start_of_week.strftime('%d.%m')} - {end_of_week.strftime('%d.%m')})** Affixes:\n\n"
-                        f"**+2:** {affixes[0]}\n"
-                        f"**+5:** {affixes[1]}\n"
-                        f"**+10:** {affixes[2]}")
+                        f"**+2:** Bargain: {affix}\n"
+                        f"**+4:** {forti_or_tyra[fortyra]}")
 
     @tasks.loop(hours=24.0)
     async def check(self):
