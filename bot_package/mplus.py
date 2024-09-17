@@ -396,7 +396,6 @@ class mplus(commands.Cog):
             "?",
         )
         forti_or_tyra = ("Tyrannical", "Fortified")
-
         start_date = datetime.date(2024, 9, 18)
         current_date = datetime.date.today()
         weeks_passed = (current_date - start_date).days // 7
@@ -404,7 +403,7 @@ class mplus(commands.Cog):
             weeks_passed = 0
         current_week = weeks_passed % len(affix_rotation)
         target_week = (current_week + int(next_week)) % len(affix_rotation)
-        fortyra = next_week % 2
+        fortyra = int(next_week) % 2
         start_of_week = start_date + datetime.timedelta(weeks=weeks_passed + int(next_week))
         end_of_week = start_of_week + datetime.timedelta(days=6)
         affix = affix_rotation[target_week]
