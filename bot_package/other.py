@@ -21,8 +21,7 @@ class other(commands.Cog):
                 "🔸/keys abbr\n" 
                 "🔸<keyholder> - [Keystone: <dungeon> (<level>)]", False),
             "Raider.io": ("🔸/rio <character>-<realm>\n"
-                "🔸/rio <character>-<realm> <level>\n"
-                "🔸/rio <character>-<realm> <level> <f or t>", False),
+                "🔸/rio <character>-<realm> <level>", False),
             "Poll": ("🔸/poll <about>, <option_1>, <option_2>,...", False),
             "Dungeon ilvls": ("🔸/ilvl\n"
                 "🔸/ilvl <level>\n", False),

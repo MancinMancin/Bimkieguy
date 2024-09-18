@@ -167,6 +167,7 @@ class mplus(commands.Cog):
                                                         f"```{tank_users.mention}\n{healer_users.mention}\n{dps_users[0].mention}\n{dps_users[1].mention}```")
                                 
                             elif mode == "donzon":
+                                print(message)
                                 tank_users, healer_users, dps_users = self.weekly_gaming(tanks, healers, dps)
                                 await message.channel.send(f"Keystone team:\n"
                                                            f"<:Tank_icon:1103828509996089499> {tank_users.mention}\n"
