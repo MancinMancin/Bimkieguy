@@ -1,9 +1,14 @@
 from discord.ext import commands
 import discord
+import json
 
 class other(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self.roles_dict = {
+            "<:Muslim_Uncle_Pepe:1098289343627526266>": 989535345370628126,
+            "<:icon_chaos_dungeon:1287839347952848979>": 1087697492038131762,
+        }
 
     @commands.command()
     async def help(self, ctx: commands.Context):
@@ -37,6 +42,52 @@ class other(commands.Cog):
         for k, v in fields.items():
             embed.add_field(name=k, value=v[0], inline=v[1])
         await ctx.send(embed=embed)
+
+    @commands.command()
+    async def role(self, ctx: commands.Context):
+        await ctx.message.delete()
+        message_key = "message_id"
+        message_to_send = "Zareaguj, by dostać rolę"
+        for emoji, role_id in self.roles_dict.items():
+            role = ctx.guild.get_role(role_id)
+            message_to_send += f"\n\n{emoji}: `{role.name}`"
+        try:
+            with open("options.json", "r") as f:
+                options = json.load(f)
+            message_id = options[message_key]
+        except FileNotFoundError:
+            options = {}
+            message_id = None
+        except KeyError:
+            message_id = None
+
+        if not message_id:
+            message = await ctx.send(message_to_send)
+            for emoji in self.roles_dict.keys():
+                await message.add_reaction(emoji)
+            options[message_key] = message.id
+            with open("options.json", "w") as f:
+                json.dump(options, f)
+        else:
+            message: discord.Message = await ctx.fetch_message(message_id)
+            await message.edit(content=message_to_send)
+
+    @commands.Cog.listener()
+    async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
+        if str(payload.emoji) in self.roles_dict.keys():
+            role_id = self.roles_dict[str(payload.emoji)]
+            guild = self.bot.get_guild(payload.guild_id)
+            role = guild.get_role(role_id)
+            await payload.member.add_roles(role)
+
+    @commands.Cog.listener()
+    async def on_raw_reaction_remove(self, payload: discord.RawReactionActionEvent):
+        if str(payload.emoji) in self.roles_dict.keys():
+            role_id = self.roles_dict[str(payload.emoji)]
+            guild = self.bot.get_guild(payload.guild_id)
+            role = guild.get_role(role_id)
+            member = guild.get_member(payload.user_id)
+            await member.remove_roles(role)
 
 async def setup(bot):
     await bot.add_cog(other(bot))

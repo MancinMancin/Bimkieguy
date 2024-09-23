@@ -19,8 +19,9 @@ class mplus(commands.Cog):
     def cog_unload(self):
         [x.cancel() for x in self.loops]
 
-    def select_elements(self, tanks, healers, dps, keyholders): # @bułkarze
+    def select_elements(tanks_to_roll, healers_to_roll, dps_to_roll, keyholders_to_roll): # @bułkarze
         while True:
+            tanks, healers, dps, keyholders = tanks_to_roll, healers_to_roll, dps_to_roll, keyholders_to_roll
             chosen_dps, chosen_healer, chosen_tank, chosen_keyholder = None, None, None, None
             while chosen_keyholder not in dps + healers + tanks:
                 chosen_keyholder = random.choice(list(set(keyholders)))
@@ -60,8 +61,9 @@ class mplus(commands.Cog):
                 continue
             return chosen_tank, chosen_healer, chosen_dps, chosen_keyholder
 
-    def weekly_gaming(self, tanks, healers, dps): # @donzon
+    def weekly_gaming(tanks_to_roll, healers_to_roll, dps_to_roll): # @donzon
         while True:
+            tanks, healers, dps = tanks_to_roll, healers_to_roll, dps_to_roll
             chosen_tank, chosen_healer, chosen_dps = None, None, None
             if len(tanks) >= 1:
                 chosen_tank = random.choice(list(set(tanks)))
