@@ -66,8 +66,6 @@ class other(commands.Cog):
 
         if not message_id:
             message = await ctx.send(message_to_send)
-            for emoji in self.roles_dict.keys():
-                await message.add_reaction(emoji)
             options[message_key] = message.id
             with open("options.json", "w") as f:
                 json.dump(options, f)
@@ -75,8 +73,13 @@ class other(commands.Cog):
             message: discord.Message = await ctx.fetch_message(message_id)
             await message.edit(content=message_to_send)
 
+        for emoji in self.roles_dict.keys():
+            await message.add_reaction(emoji)
+
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
+        if payload.member.bot:
+            return
         if str(payload.emoji) in self.roles_dict.keys():
             role_id = self.roles_dict[str(payload.emoji)]
             guild = self.bot.get_guild(payload.guild_id)
