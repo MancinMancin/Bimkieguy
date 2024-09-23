@@ -135,6 +135,8 @@ class mplus(commands.Cog):
                 has_enough_dps = len(dps) >= dps_count
                 has_at_least_two_unique_tank_healer = len(set(tanks + healers)) >= 2
                 has_at_least_four_unique_tank_healer_dps = len(set(tanks + healers + dps)) >= 2 + dps_count
+                has_at_least_three_unique_tank_dps = len(set(tanks + dps)) >= 1 + dps_count
+                has_at_least_three_unique_healer_dps = len(set(healers + dps)) >= 1 + dps_count
                 if mode == "bulkarze":
                     has_at_least_one_keystone = len(keystone_holders) >= 1
                     at_least_one_role_with_keystone = any(element in keystone_holders for element in tanks + healers + dps)
@@ -145,7 +147,7 @@ class mplus(commands.Cog):
                 async with self.message_users[message_id]["lock"]:
                     if (has_enough_tanks and has_enough_healers and has_enough_dps and
                         has_at_least_two_unique_tank_healer and has_at_least_four_unique_tank_healer_dps and
-                        has_at_least_one_keystone and at_least_one_role_with_keystone):
+                        has_at_least_one_keystone and at_least_one_role_with_keystone and has_at_least_three_unique_tank_dps and has_at_least_three_unique_healer_dps):
                         if self.message_users[message_id]["sent"] == False:
                             await message.channel.send("Team can now be made")
                             self.message_users[message_id]['sent'] = True
@@ -154,7 +156,7 @@ class mplus(commands.Cog):
 
                         if (has_enough_tanks and has_enough_healers and has_enough_dps and
                             has_at_least_two_unique_tank_healer and has_at_least_four_unique_tank_healer_dps and
-                            has_at_least_one_keystone and at_least_one_role_with_keystone):
+                            has_at_least_one_keystone and at_least_one_role_with_keystone and has_at_least_three_unique_tank_dps and has_at_least_three_unique_healer_dps):
 
                             if mode == "bulkarze":
                                 tank_users, healer_users, dps_users, keystone_users = self.select_elements(tanks, healers, dps, keystone_holders)
