@@ -93,7 +93,7 @@ class mplus(commands.Cog):
         if self.role_bulkarze in message.content:
             mode = "bulkarze"
             dps_count = 2
-        if self.role_donzon in message.content:
+        elif self.role_donzon in message.content:
             mode = "donzon"
             dps_count = 3
         if mode:
@@ -131,6 +131,7 @@ class mplus(commands.Cog):
                 tanks = self.message_users[message_id]['tanks']
                 healers = self.message_users[message_id]['healers']
                 dps = self.message_users[message_id]['dps']
+                print(dps)
                 keystone_holders = self.message_users[message_id]['keystone']
                 has_enough_tanks = len(tanks) >= 1
                 has_enough_healers = len(healers) >= 1
