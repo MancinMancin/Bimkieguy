@@ -4,8 +4,9 @@ import re
 import typing
 import time as tm
 import discord
+import asyncio
 
-class aha(commands.Cog):
+class signups(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.klasy = {
@@ -102,6 +103,48 @@ class aha(commands.Cog):
             emoji_list.append(emoji)
         return emoji_list
     
+    async def edit_unix_desc(self, interaction: discord.Interaction, unix: typing.Tuple[str, str], new_desc: str):
+        for message, _ in self.eventy:
+            if interaction.message.id == message.id:
+                if unix:
+                    unix = f"<t:{unix}:F>"
+                embed_to_edit: discord.Embed = message.embeds[0]
+                embed_to_edit.description = new_desc or embed_to_edit.description
+                time_field = embed_to_edit.fields[0]
+                embed_to_edit.set_field_at(0, name=time_field.name, value=unix or time_field.value, inline=time_field.inline)
+                await message.edit(embed=embed_to_edit)
+
+    async def get_new_unix_desc(self, dm_recipient: discord.User) -> typing.Tuple[typing.Tuple[str, str], str]:
+        skip = "skip"
+        unix, new_desc = None, None
+        await dm_recipient.send(f"Change date/time or `{skip}`")
+        while True:
+            try:
+                response_time: discord.Message = await self.bot.wait_for("message", timeout=60, check=lambda m: not m.author.bot)
+            except asyncio.TimeoutError:
+                await dm_recipient.send("You took too long to respond")
+                return
+            if response_time.content.lower() != skip:
+                split_msg = response_time.content.split()
+                date = split_msg[0]
+                time = split_msg[1]
+                unix = self.make_unix(date, time)
+                if not unix:
+                    await dm_recipient.send("Wrong date or time, try again")
+                    continue
+                else:
+                    break
+            break
+        await dm_recipient.send("Change description or `skip`")
+        try:
+            response_desc: discord.Message = await self.bot.wait_for("message", timeout=60, check=lambda m: not m.author.bot)
+        except asyncio.TimeoutError:
+            await dm_recipient.send("You took too long to respond")
+            return
+        if response_desc.content.lower() != skip:
+            new_desc = response_desc.content
+        return unix, new_desc
+
     class ZapisyZamkniete(discord.ui.View):
         def __init__(self):
             super().__init__()
@@ -126,9 +169,10 @@ class aha(commands.Cog):
             await self.main_interaction.edit_original_response(content="Zapisano", view=None)
 
     class View(discord.ui.View):
-        def __init__(self, cog_self):
+        def __init__(self, cog_self, author_id):
             super().__init__(timeout=None)
             self.cog_self = cog_self
+            self.author_id = author_id
         async def button_click(self, interaction: discord.Interaction, role: str):
             select_class = self.cog_self.ChooseClass(self.cog_self, interaction, role)
             view = discord.ui.View()
@@ -147,6 +191,14 @@ class aha(commands.Cog):
         async def callback_out(self, interaction: discord.Interaction, button: discord.ui.Button):
             await self.cog_self.edit_embed(interaction, "None", ["Druid"])
             await interaction.response.send_message(content="Wypisano", ephemeral=True)
+        @discord.ui.button(label="Edytuj", style=discord.ButtonStyle.green)
+        async def callback_edit(self, interaction: discord.Interaction, button: discord.ui.Button):
+            await interaction.response.defer()
+            if interaction.user.id == self.author_id or interaction.user.guild_permissions.administrator:
+                dm_recipient = interaction.user
+                unix, new_desc = await self.cog_self.get_new_unix_desc(dm_recipient)
+                await self.cog_self.edit_unix_desc(interaction, unix, new_desc)
+                await dm_recipient.send("Event updated")
 
     def make_unix(self, date: str, time: str) -> typing.Tuple[str, str]:
         pattern_date = r"(3[01]|[12][0-9]|0?[1-9])[\.\-\:\/]?(1[0-2]|0?[1-9])?[.\-\:\/]?(\d{4})?"
@@ -199,6 +251,7 @@ class aha(commands.Cog):
         if not unix:
             await ctx.send("Wrong date or time")
             return
+        author_id = ctx.message.author.id
         info = " ".join(args)
         title = "Event"
         colour = 000000
@@ -218,8 +271,8 @@ class aha(commands.Cog):
         url = "https://i.imgur.com/9rcj0qB.png"
         embed = self.make_embed(title, info, colour, fields, url)
         await ctx.send("<@&1105548968697540679>")
-        message = await ctx.send(embed=embed, view=self.View(self))
+        message = await ctx.send(embed=embed, view=self.View(self, author_id))
         self.eventy.append((message, unix))
 
 async def setup(bot):
-    await bot.add_cog(aha(bot))
+    await bot.add_cog(signups(bot))

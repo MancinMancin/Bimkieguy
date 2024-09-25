@@ -131,7 +131,6 @@ class mplus(commands.Cog):
                 tanks = self.message_users[message_id]['tanks']
                 healers = self.message_users[message_id]['healers']
                 dps = self.message_users[message_id]['dps']
-                print(dps)
                 keystone_holders = self.message_users[message_id]['keystone']
                 has_enough_tanks = len(tanks) >= 1
                 has_enough_healers = len(healers) >= 1
@@ -396,8 +395,8 @@ class mplus(commands.Cog):
             return
         affix_rotation = (
             "Ascendant",
-            "Voidbound",
             "Oblivion",
+            "Voidbound",
             "Devour",
         )
         forti_or_tyra = ("Tyrannical", "Fortified")
