@@ -49,7 +49,6 @@ class signups(commands.Cog):
             if datetime.datetime.now() > datetime.datetime.fromtimestamp(unix):
                 await message.edit(view=self.ZapisyZamkniete())
                 self.eventy.remove(tuple)
-                print(self.eventy)
     
     async def edit_embed(self, interaction: discord.Interaction, role: str, answers: list[str]):
         for message, _ in self.eventy:
@@ -103,15 +102,16 @@ class signups(commands.Cog):
             emoji_list.append(emoji)
         return emoji_list
     
-    async def edit_unix_desc(self, interaction: discord.Interaction, unix: typing.Tuple[str, str], new_desc: str):
-        for message, _ in self.eventy:
+    async def edit_unix_desc(self, interaction: discord.Interaction, new_unix: typing.Tuple[str, str], new_desc: str):
+        for idx, (message, _) in enumerate(self.eventy):
             if interaction.message.id == message.id:
-                if unix:
-                    unix = f"<t:{unix}:F>"
+                if new_unix:
+                    self.eventy[idx] = (message, new_unix)
+                    new_unix = f"<t:{new_unix}:F>"
                 embed_to_edit: discord.Embed = message.embeds[0]
                 embed_to_edit.description = new_desc or embed_to_edit.description
                 time_field = embed_to_edit.fields[0]
-                embed_to_edit.set_field_at(0, name=time_field.name, value=unix or time_field.value, inline=time_field.inline)
+                embed_to_edit.set_field_at(0, name=time_field.name, value=new_unix or time_field.value, inline=time_field.inline)
                 await message.edit(embed=embed_to_edit)
 
     async def get_new_unix_desc(self, dm_recipient: discord.User) -> typing.Tuple[typing.Tuple[str, str], str]:
@@ -245,7 +245,7 @@ class signups(commands.Cog):
         return embed
 
     @commands.command()
-    async def signups(self, ctx: commands.Context, date: str, time: str, *args: str):
+    async def ignups(self, ctx: commands.Context, date: str, time: str, *args: str):
         await ctx.message.delete()
         unix = self.make_unix(date, time)
         if not unix:
