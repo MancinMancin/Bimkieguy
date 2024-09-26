@@ -245,7 +245,7 @@ class signups(commands.Cog):
         return embed
 
     @commands.command()
-    async def ignups(self, ctx: commands.Context, date: str, time: str, *args: str):
+    async def signups(self, ctx: commands.Context, date: str, time: str, *args: str):
         await ctx.message.delete()
         unix = self.make_unix(date, time)
         if not unix:
