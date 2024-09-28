@@ -3,6 +3,8 @@ import discord
 import yt_dlp
 import os
 import shutil
+import asyncio
+from concurrent.futures import ThreadPoolExecutor
 
 class Playback(commands.Cog):
     def __init__(self, bot: commands.Bot):
@@ -12,6 +14,7 @@ class Playback(commands.Cog):
             'noplaylist': False,
             'quiet': True,
             'outtmpl': 'downloads/%(id)s.%(ext)s',
+            'socket_timeout': 300,
             'postprocessors': [{
                 'key': 'FFmpegExtractAudio',
                 'preferredcodec': 'mp3',
@@ -20,6 +23,7 @@ class Playback(commands.Cog):
         }
         self.is_playing = False
         self.song_queue: list = []
+        self.executor = ThreadPoolExecutor(max_workers=4)
 
     async def connect_to_invoker_channel(self, ctx: commands.Context) -> discord.VoiceChannel:
         if ctx.author.voice is None:
@@ -36,12 +40,18 @@ class Playback(commands.Cog):
             voice = ctx.voice_client.channel
         return voice
 
-    def gather_video_info_add_to_queue(self, url: str):
+    def extract_info_sync(self, url: str):
+        with yt_dlp.YoutubeDL(self.ydl_opts) as ydl:
+            return ydl.extract_info(url, download=False)
+
+    async def gather_video_info_add_to_queue(self, url: str):
+        loop = asyncio.get_event_loop()
         with yt_dlp.YoutubeDL(self.ydl_opts) as ydl:
             try:
-                info = ydl.extract_info(url, download=False)
+                info = await loop.run_in_executor(self.executor, self.extract_info_sync, url)
                 
                 if "entries" in info: # If it's a playlist
+                    songs_number = len(info["entries"])
                     for video in info["entries"]:
                         video_info = {
                             "id": video.get("id"),
@@ -50,7 +60,7 @@ class Playback(commands.Cog):
                             "filename": ydl.prepare_filename(video).replace("webm", "mp3")
                         }
                         self.song_queue.append(video_info)
-                    songs_number = len(info["entries"])
+                        await asyncio.sleep(0.1)
                     
                 else: # If it's a single video
                     video_info = {
@@ -67,13 +77,16 @@ class Playback(commands.Cog):
             
             return songs_number
 
-    def download_audio_file(self, video: dict):
-        """Download video."""
-        with yt_dlp.YoutubeDL(self.ydl_opts) as ydl:
-            try:
+    async def download_audio_file(self, video: dict):
+        """Download video asynchronously."""
+        def download():
+            with yt_dlp.YoutubeDL(self.ydl_opts) as ydl:
                 ydl.download([video["url"]])
-            except Exception as e:
-                return e
+        
+        try:
+            await asyncio.to_thread(download)
+        except Exception as e:
+            return e
             
     def clear_downloads_folder(self):
         folder = "downloads"
@@ -107,13 +120,16 @@ class Playback(commands.Cog):
             filename = video_info['filename']
 
             # Download the song
-            error = self.download_audio_file(video_info)
+            error = await self.download_audio_file(video_info)
             # If error, return it to send it
             if error:
                 return error
 
             # Play the song
-            ctx.voice_client.play(discord.FFmpegPCMAudio(source=filename), after=lambda e: self.bot.loop.create_task(self.play_next(ctx)))
+            try:
+                ctx.voice_client.play(discord.FFmpegPCMAudio(source=filename), after=lambda e: self.bot.loop.create_task(self.play_next(ctx)))
+            except AttributeError:
+                return
 
         else: # No more songs in the queue, disconnect
             self.is_playing = False
@@ -124,14 +140,16 @@ class Playback(commands.Cog):
         if not url:
             await ctx.send("Give me a link")
             return
-        await self.connect_to_invoker_channel(ctx) # Connect the bot to channel
-        songs_number = self.gather_video_info_add_to_queue(url) # Get info about songs from url and append them to the queue
-        if type(songs_number) == Exception:
+        
+        await ctx.send("Processing your request")
+        
+        songs_number = await self.gather_video_info_add_to_queue(url) # Get info about songs from url and append them to the queue
+        if not isinstance(songs_number, int):
             await ctx.send(f"Error: {songs_number}")
             return
 
         await ctx.send(f"Added {songs_number} song(s) to the queue. Queue contains {len(self.song_queue)} song(s).")
-
+        await self.connect_to_invoker_channel(ctx) # Connect the bot to channel
         # If nothing is playing, start playback
         if not self.is_playing:
             error = await self.play_next(ctx)
@@ -160,7 +178,11 @@ class Playback(commands.Cog):
             queue_list.append(f"{i+1}. {video_title}")
         songs = "\n".join(x for x in queue_list)
         await ctx.send(f"Current queue:\n{songs}")
-            
 
+    @commands.command()
+    async def stop(self, ctx: commands.Context):
+        await self.disconnect_bot(ctx)
+        self.is_playing = False
+            
 async def setup(bot):
     await bot.add_cog(Playback(bot))
