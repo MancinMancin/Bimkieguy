@@ -34,7 +34,11 @@ class other(commands.Cog):
             "Dungeon ilvls": ("🔸/ilvl\n"
                 "🔸/ilvl <level>\n", False),
             "Affixes": ("🔸/affix\n"
-                        "🔸/affix <week in advance>", False)
+                        "🔸/affix <week in advance>", False),
+            "Music Playback": ("🔸/play <url>\n"
+                               "🔸/skip\n"
+                               "🔸/queue\n"
+                               "🔸/stop")
         }
         foot = "Mancin Mancin"
         foot_icon = "https://media.discordapp.net/attachments/1087696437426528269/1089293104089137282/OIG.awIefY1fsoRX0.jpg?width=676&height=676"
