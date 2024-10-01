@@ -178,6 +178,8 @@ class mplus(commands.Cog):
                                                            f"<:Dps_icon:1103828601075413145> {dps_users[0].mention}\n"
                                                            f"<:Dps_icon:1103828601075413145> {dps_users[1].mention}\n"
                                                            f"<:Dps_icon:1103828601075413145> {dps_users[2].mention}")
+                            
+                            del self.message_users[message_id]
 
                         else:
                             await message.channel.send("Cannot form a team due to people unsigning.")
