@@ -134,6 +134,8 @@ class keystorage(commands.Cog):
         if matching_keys:
             message_to_send = "\n".join(matching_keys)
             await ctx.send(message_to_send)
+        elif arg.lower() in self.dungeons.keys():
+            await ctx.send(f"There are no such keys for {self.dungeons[arg.lower()]} ")
         else:
             await ctx.send("There are no such keys")
 
