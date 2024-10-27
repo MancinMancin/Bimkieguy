@@ -16,7 +16,10 @@ class wow(commands.Cog):
                        "<https://wago.io/F2nyTZ7q8>\n\n"
                        
                        "**Cresty Addon:**\n"
-                       "<https://www.curseforge.com/wow/addons/cresty>")
+                       "<https://www.curseforge.com/wow/addons/cresty>\n\n"
+                       
+                       "**Voidbound Absorb Mod**\n"
+                       "<https://wago.io/9jR3ONZiz>")
         
         
     @commands.command()

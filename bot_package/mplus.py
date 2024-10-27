@@ -400,6 +400,7 @@ class mplus(commands.Cog):
             "Oblivion",
             "Voidbound",
             "Devour",
+            "Oblivion",
         )
         forti_or_tyra = ("Tyrannical", "Fortified")
         start_date = datetime.date(2024, 9, 18)
