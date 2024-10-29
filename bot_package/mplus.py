@@ -211,12 +211,11 @@ class mplus(commands.Cog):
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
         if self.role_bulkarze in message.content:
-            await message.channel.send("Idź dupe lizać normikowi")
-            # await message.add_reaction('<:Tank_icon:1103828509996089499>') 
-            # await message.add_reaction('<:Healer_icon:1103828598722416690>') 
-            # await message.add_reaction('<:Dps_icon:1103828601075413145>')
-            # await message.add_reaction('<:Keystone:1095145259903750265>')
-            # await message.add_reaction('<:Muslim_Uncle_Pepe:1098289343627526266>')
+            await message.add_reaction('<:Tank_icon:1103828509996089499>') 
+            await message.add_reaction('<:Healer_icon:1103828598722416690>') 
+            await message.add_reaction('<:Dps_icon:1103828601075413145>')
+            await message.add_reaction('<:Keystone:1095145259903750265>')
+            await message.add_reaction('<:Muslim_Uncle_Pepe:1098289343627526266>')
         if self.role_donzon in message.content:
             await message.add_reaction('<:Tank_icon:1103828509996089499>')
             await message.add_reaction('<:Healer_icon:1103828598722416690>')
