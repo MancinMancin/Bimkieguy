@@ -99,6 +99,8 @@ class other(commands.Cog):
     @commands.Cog.listener()
     async def on_voice_state_update(self, member: discord.Member, before: discord.VoiceState, after: discord.VoiceState):
         if before.channel and after.channel:
+            if before.self_stream == after.self_stream:
+                return
             if after.self_stream == True and member.activity:
                 if member.activity.name == "League of Legends":
                     role = 1313866283908857988
