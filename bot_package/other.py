@@ -100,7 +100,7 @@ class other(commands.Cog):
     async def on_voice_state_update(self, member: discord.Member, before: discord.VoiceState, after: discord.VoiceState):
         if before.channel and after.channel:
             if after.self_stream == True and member.activity:
-                if member.activity.name == "World of Warcraft":
+                if member.activity.name == "League of Legends":
                     role = 1313866283908857988
                     channel_id = 760211224913903647
                     channel = self.bot.get_channel(channel_id)
