@@ -11,6 +11,7 @@ class other(commands.Cog):
             "<:ui_profession_alchemy:1287875578212651069>": 1278676590397489253,
             "<:raven:1287875463397642282>": 1105548968697540679,
             "<:Phasmo:1287875301510090814>": 1203456671490506862,
+            "<:sadnivia:778362076723675146>": 1313866283908857988,
         }
 
     @commands.command()
@@ -94,6 +95,18 @@ class other(commands.Cog):
             role = guild.get_role(role_id)
             member = guild.get_member(payload.user_id)
             await member.remove_roles(role)
+
+    @commands.Cog.listener()
+    async def on_voice_state_update(self, member: discord.Member, before: discord.VoiceState, after: discord.VoiceState):
+        if before.channel and after.channel:
+            if after.self_stream == True and member.activity:
+                if member.activity.name == "World of Warcraft":
+                    role = 1313866283908857988
+                    channel_id = 760211224913903647
+                    channel = self.bot.get_channel(channel_id)
+                    guild_id = 521281100069470208
+                    link = f"https://discord.com/channels/{guild_id}/{after.channel.id}"
+                    await channel.send(f"<@&{role}>\n{member.display_name} started a stream! {link}")
 
 async def setup(bot):
     await bot.add_cog(other(bot))
