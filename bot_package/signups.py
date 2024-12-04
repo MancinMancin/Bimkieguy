@@ -228,7 +228,7 @@ class signups(commands.Cog):
                 year = now.year
         if not minute:
             minute = 0
-        target_datetime = datetime.datetime(int(year), int(month), int(day), int(hour) - 1, int(minute), second=0)
+        target_datetime = datetime.datetime(int(year), int(month), int(day), int(hour) - 2, int(minute), second=0)
         unix = int(tm.mktime(target_datetime.timetuple()))
         return unix
     
