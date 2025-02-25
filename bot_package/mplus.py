@@ -339,18 +339,18 @@ class mplus(commands.Cog):
     @commands.command()
     async def ilvl(self, ctx: commands.Context, arg: str = None):
         keystones_ilvl = {
-            "0": ("636", "Veteran 4/8", "645", "Champion 3/8", "15 Carved"),
-            "2": ("639", "Champion 1/8", "649", "Champion 4/8", "10 Runed"),
-            "3": ("639", "Champion 1/8", "649", "Hero 1/6", "12 Runed"),
-            "4": ("642", "Champion 2/8", "652", "Hero 1/6", "14 Runed"),
-            "5": ("645", "Champion 3/8", "652", "Hero 2/6", "16 Runed"),
-            "6": ("649", "Champion 4/8", "655", "Hero 2/6", "18 Runed"),
-            "7": ("649", "Hero 1/6", "658", "Hero 3/6", "10 Gilded"),
-            "8": ("652", "Hero 1/6", "658", "Hero 4/6", "12 Gilded"),
+            "0": ("636", "Champion 1/8", "645", "Champion 4/8", "15 Carved"),
+            "2": ("639", "Champion 2/8", "649", "Hero 1/6", "10 Runed"),
+            "3": ("639", "Champion 2/8", "649", "Hero 1/6", "12 Runed"),
+            "4": ("642", "Champion 3/8", "652", "Hero 2/6", "14 Runed"),
+            "5": ("645", "Champion 4/8", "652", "Hero 2/6", "16 Runed"),
+            "6": ("649", "Hero 1/6", "655", "Hero 3/6", "18 Runed"),
+            "7": ("649", "Hero 1/6", "658", "Hero 4/6", "10 Gilded"),
+            "8": ("652", "Hero 2/6", "658", "Hero 4/6", "12 Gilded"),
             "9": ("652", "Hero 2/6", "658", "Hero 4/6", "14 Gilded"),
             "10": ("655", "Hero 3/6", "662", "Myth 1/6", "16 Gilded"),
-            "10": ("655", "Hero 3/6", "662", "Myth 1/6", "18 Gilded"),
-            "10": ("655", "Hero 3/6", "662", "Myth 1/6", "20 Gilded")
+            "11": ("655", "Hero 3/6", "662", "Myth 1/6", "18 Gilded"),
+            "12": ("655", "Hero 3/6", "662", "Myth 1/6", "20 Gilded")
         }
         if arg == None:
             pass
@@ -358,8 +358,8 @@ class mplus(commands.Cog):
             arg = int(arg)
             if arg == 1:
                 arg = 0
-            elif arg > 10:
-                arg = 10
+            elif arg > 12:
+                arg = 12
         elif arg.lower() in keystones_ilvl:
             arg = arg.lower()
 
