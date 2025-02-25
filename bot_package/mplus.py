@@ -228,14 +228,14 @@ class mplus(commands.Cog):
     @commands.command()
     async def rio(self, ctx: commands.Context, char: str = None, level: str = None):
         all_dungeons = [
-            "Ara-Kara, City of Echoes",
-            "City of Threads",
-            "Grim Batol",
-            "Mists of Tirna Scithe",
-            "Siege of Boralus",
-            "The Dawnbreaker",
-            "The Necrotic Wake",
-            "The Stonevault"
+            "Cinderbrew Meadery",
+            "Darkflame Cleft",
+            "Mechagon Workshop",
+            "Operation: Floodgate",
+            "Priory of the Sacred Flame",
+            "The MOTHERLODE!!",
+            "The Rookery",
+            "Theater of Pain"
         ]
         base_score = {
             "2" : "165",
@@ -339,17 +339,18 @@ class mplus(commands.Cog):
     @commands.command()
     async def ilvl(self, ctx: commands.Context, arg: str = None):
         keystones_ilvl = {
-            "hc": ("580", "Adventurer 4/8", "593", "Veteran 4/8", "Weathered"),
-            "0": ("593", "Veteran 4/8", "603", "Champion 3/8", "Carved"),
-            "2": ("597", "Champion 1/8", "606", "Champion 4/8", "Carved"),
-            "3": ("597", "Champion 1/8", "610", "Hero 1/6", "Carved"),
-            "4": ("600", "Champion 2/8", "610", "Hero 1/6", "Runed"),
-            "5": ("603", "Champion 3/8", "613", "Hero 2/6", "Runed"),
-            "6": ("606", "Champion 4/8", "613", "Hero 2/6", "Runed"),
-            "7": ("610", "Hero 1/6", "616", "Hero 3/6", "Runed"),
-            "8": ("610", "Hero 1/6", "619", "Hero 4/6", "Runed"),
-            "9": ("613", "Hero 2/6", "619", "Hero 4/6", "Gilded"),
-            "10": ("613", "Hero 2/6", "623", "Myth 1/6", "Gilded"),
+            "0": ("636", "Veteran 4/8", "645", "Champion 3/8", "15 Carved"),
+            "2": ("639", "Champion 1/8", "649", "Champion 4/8", "10 Runed"),
+            "3": ("639", "Champion 1/8", "649", "Hero 1/6", "12 Runed"),
+            "4": ("642", "Champion 2/8", "652", "Hero 1/6", "14 Runed"),
+            "5": ("645", "Champion 3/8", "652", "Hero 2/6", "16 Runed"),
+            "6": ("649", "Champion 4/8", "655", "Hero 2/6", "18 Runed"),
+            "7": ("649", "Hero 1/6", "658", "Hero 3/6", "10 Gilded"),
+            "8": ("652", "Hero 1/6", "658", "Hero 4/6", "12 Gilded"),
+            "9": ("652", "Hero 2/6", "658", "Hero 4/6", "14 Gilded"),
+            "10": ("655", "Hero 3/6", "662", "Myth 1/6", "16 Gilded"),
+            "10": ("655", "Hero 3/6", "662", "Myth 1/6", "18 Gilded"),
+            "10": ("655", "Hero 3/6", "662", "Myth 1/6", "20 Gilded")
         }
         if arg == None:
             pass
@@ -397,10 +398,10 @@ class mplus(commands.Cog):
             return
         affix_rotation = (
             "Ascendant",
-            "Oblivion",
+            "Pulsar",
             "Voidbound",
             "Devour",
-            "Oblivion",
+            "Pulsar",
         )
         forti_or_tyra = ("Tyrannical", "Fortified")
         start_date = datetime.date(2024, 9, 18)
