@@ -15,14 +15,14 @@ class keystorage(commands.Cog):
             self.keystones = json.load(f)
 
         self.dungeons = {
-            "arak": "Ara-Kara, City of Echoes",
-            "cot": "City of Threads",
-            "gb": "Grim Batol",
-            "mists": "Mists of Tirna Scithe",
-            "siege": "Siege of Boralus",
-            "dawn": "The Dawnbreaker",
-            "nw": "The Necrotic Wake",
-            "sv": "The Stonevault"
+            "brew": "Cinderbrew Meadery",
+            "dfc": "Darkflame Cleft",
+            "work": "Mechagon Workshop",
+            "flood": "Operation: Floodgate",
+            "psf": "Priory of the Sacred Flame",
+            "ml": "The MOTHERLODE!!",
+            "rook": "The Rookery",
+            "top": "Theater of Pain"
         }
     
     def cog_unload(self):
