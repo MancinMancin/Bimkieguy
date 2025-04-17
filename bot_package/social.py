@@ -46,10 +46,10 @@ class social(commands.Cog):
     @commands.command()
     async def pick(self, ctx: commands.Context, *args: list[str]):
         if len(args) == 0:
-            await ctx.send("Dej jakieś rzeczy do losowania byq")
+            await ctx.send("Daj jakieś rzeczy do losowania ")
             return
         item = random.choice(args)
-        await ctx.send(f"{item}")    
+        await ctx.send(f"{item}")
 
 async def setup(bot):
     await bot.add_cog(social(bot))
